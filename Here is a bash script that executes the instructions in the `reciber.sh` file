@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Clone the .env template
+cp .env.template .env
+
+# Clone the docker-compose template
+cp docker-compose.template docker-compose.yml
+
+# Replace in the .env and in the docker-compose-template
+# Replace <my_app> with the name of your app
+# Replace <my_domain_app> with your app's domain
+# Replace info@<my_domain_app> with a real email address
+# Replace <bd_password> with a real password
+# Replace <user_bdd> with a name for BDD user
+# Replace <user_wp> with a name for WordPress user
+# Replace <wp_user_pass> with a real password
+
+# Create a folder with the name of the site to store volumes
+# Create a folder named wp
+# Create a folder named db
+# Create a folder named log
+
+# Change the owner of the folder and all its subfolders to user 1000
+chown -R 1000:1000 /path/to/site
+
+# Start the docker-compose.yml
+docker-compose up -d
+
+# Migrate the WordPress site
+if [ -f wp-bedrock ]; then
+    # Remove the web folder
+    rm -rf /path/to/site/web
+
+    # Remove the wp-content folder
+    rm -rf /path/to/site/wp-content
+
+    # Copy the .zip file to the wp folder
+    cp wp-bedrock.zip /path/to/site/wp
+
+    # Copy the .sql file to the db folder
+    cp db.sql /path/to/site/db
+
+    # Decompress the .zip file in the wp folder
+    unzip /path/to/site/wp/wp-bedrock.zip
+
+    # Change the permissions of all files in the wp folder
+    chmod -R 755 /path/to/site/wp
+
+    # Enter the MySQL container
+    docker exec -it mysql /path/to/site/mysql
+
+    # Enter MySQL
+    mysql -u root -p
+
+    # Create an empty BDD database with the same name as the original
+    CREATE DATABASE IF NOT EXISTS wp_bdd;
+
+    # Enter the BDD database
+    use wp_bdd;
+
+    # Import the .sql file with SOURCE
+    SOURCE /path/to/site/db/db.sql;
+
+    # Grant permissions to the BDD user
+    GRANT ALL PRIVILEGES ON wp_bdd.* TO 'wp_bdd'@'localhost' IDENTIFIED BY '<user_bdd_password>';
+
+    # Rename the BDD database in wp-config.php
+    sed -i 's/wp_bdd/wp_config_bdd/g' /path/to/site/wp/wp-config.php
+fi
