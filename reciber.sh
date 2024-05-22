@@ -13,6 +13,7 @@
 ### Crear carpeta wp
 ### Creare carpeta db
 ### Crear carpeta log
+
 ## Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
 ## Levantamos el docker-compose.yml
 
@@ -21,7 +22,6 @@
 ## Eliminamos la carpeta web
 ## Entonces
 ## Eliminamos la carpeta wp-content
-
 
 ## Copiamos el archivo .zip a la carpeta wp
 ## Copiamos el archivo .sql a la carpeta db
