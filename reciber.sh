@@ -1,41 +1,63 @@
+#!/bin/bash
+
 # Intanciaar un contenedor docker wp funcional
-## Clonar la plantilla desde entorno/templates/.env.temp a ./.env
-## Clonar la plantilla desde temp-docker-compose.yml a ./docker-compose.yml
+# Clonar la plantilla desde entorno/templates/.env.temp a ./.env
+cp env/templates/.env.temp ./.env
 
-## Reemplazar en el .env y en la plantilla de docker-compose
-### Reemplace <my_app> por el nombre de su app.
-### Reemplace <my_domain_app> por el dominio de su app
-### Reemplace info@<my_domain_app> un correo electrónico real.
-### Reemplace <bd_password> una contraseña real.
-### Reemplace <user_bdd> un nombre de usuario para BDD.
-### Reemplace <user_wp>un nombre de usuario para Wordpress.
-### Reemplace <wp_user_pass> una contraseña real.
+# Clonar la plantilla desde temp-docker-compose.yml a ./docker-compose.yml
+cp env/templates/temp-docker-compose.yml ./docker-compose.yml
 
-## Crear una carpeta con el nombre del sitio para almacenar sus volumnes
-### Crear carpeta wp
-### Creare carpeta db
-### Crear carpeta log
+# Reemplazar en el .env y en la plantilla de docker-compose
+sed -i 's/<my_app>/<your_app_name>/g' .env
+sed -i 's/<my_domain_app>/<your_domain>/g' .env
+sed -i 's/info@<my_domain_app>/<your_email>/g' .env
+sed -i 's/<bd_password>/<your_db_password>/g' .env
+sed -i 's/<user_bdd>/<your_db_user>/g' .env
+sed -i 's/<user_wp>/<your_wp_user>/g' .env
+sed -i 's/<wp_user_pass>/<your_wp_password>/g' .env
 
-## Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
-## Levantamos el docker-compose.yml
+# Crear una carpeta con el nombre del sitio para almacenar sus volumnes
+mkdir wp
+mkdir db
+mkdir log
 
-## Copiamos el archivo .zip a la carpeta wp
-## Copiamos el archivo .sql a la carpeta db
+# Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
+chown -R 1000:1000 wp db log
+
+# Levantamos el docker-compose.yml
+docker-compose up -d
+
+# Copiamos el archivo .zip a la carpeta wp
+cp <your_app_name>.zip wp/
+
+# Copiamos el archivo .sql a la carpeta db
+cp <your_db_name>.sql db/
 
 # Migracion de un sitio de wordpress
-## SI el wp bedrock
-## Eliminamos la carpeta web
-## Entonces
-## Eliminamos la carpeta wp-content
+# SI el wp bedrock
+if [ -d "wp/<your_app_name>/wp-content" ]; then
+  rm -rf wp/<your_app_name>/wp-content
+fi
 
-## Descomprimimos el .zip en la carpeta wp
-## Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
+# Descomprimimos el .zip en la carpeta wp
+cd wp
+unzip <your_app_name>.zip
+cd ..
 
-## Entramos a la terminal del contenedor mysql.
-## Entramos a mysql.
-## Creamos una BDD vacia con el mismo nombre que la original.
-## Entramos en la BDD.
-## Importamos el .sql con SOURCE
-## Le damos los permisos al usuario de la BDD
-## Cambiamos el nombre de la BDD en wp-config.php
+# Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
+chmod -R 755 wp/<your_app_name>
 
+# Entramos a la terminal del contenedor mysql.
+# Entramos a mysql.
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "CREATE DATABASE IF NOT EXISTS <your_db_name>;"
+docker-compose exec db_<your_app_name> mysql <your_db_name>.sql
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "GRANT ALL PRIVILEGES ON <your_db_name>. * TO '<your_db_user>'@'localhost' IDENTIFIED BY '<your_db_password>';"
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL general_log = 'ON';"
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL log_output = 'FILE';"
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL log_file = '/var/log/mysql/<your_db_name>.log';"
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL log_slow_verbosity = 'QUERY_PLANS';"
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL slow_query_log_file = '/var/log/mysql/<your_db_name>-slow.log';"
+docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "FLUSH LOGS;"
+
+# Cambiamos el nombre de la BDD en wp-config.php
+sed -i 's/<your_db_name>/<new_db_name>/g' wp/<your_app_name>/wp-config.php
