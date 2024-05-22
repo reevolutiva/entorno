@@ -19,14 +19,14 @@
 ## Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
 ## Levantamos el docker-compose.yml
 
+## Copiamos el archivo .zip a la carpeta wp
+## Copiamos el archivo .sql a la carpeta db
+
 # Migracion de un sitio de wordpress
 ## SI el wp bedrock
 ## Eliminamos la carpeta web
 ## Entonces
 ## Eliminamos la carpeta wp-content
-
-## Copiamos el archivo .zip a la carpeta wp
-## Copiamos el archivo .sql a la carpeta db
 
 ## Descomprimimos el .zip en la carpeta wp
 ## Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
