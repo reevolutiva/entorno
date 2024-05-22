@@ -9,8 +9,8 @@ read -p "Enter the mysql pasword: " MYSQL_PASSWORD
 read -p "Enter the mysql db_name: " MYSQL_DATABASE
 
 read -p "Enter remote user: " REMOTE_USER
-read -p "Enter remote host:" REMOTE_HOST
-read -p "Enter remote path:" REMOTE_PATH_WP
+read -p "Enter remote host: " REMOTE_HOST
+read -p "Enter remote path: " REMOTE_PATH
 
 # Extract the WordPress site from the server origin
 cd $WORDPRESS_SITE_PATH
@@ -22,14 +22,13 @@ if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
     zip -r $WORDPRESS_SITE_PATH.zip .
 
     # Extract the BDD from the WordPress site
-    mysqldump -u $MYSQL_USER -p $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
+    mysqldump -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
 
     # Transfer the .zip and .sql files to the destination server
-    rsync -a -e ssh $WORDPRESS_SITE_PATH.zip REMOTE_USER@REMOTE_HOST:/REMOTE_PATH/wp/web/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 
-    rsync -a -e ssh $WORDPRESS_SITE_PATH.sql REMOTE_USER@REMOTE_HOST:/REMOTE_PATH/db/
-    #scp -r $WORDPRESS_SITE_PATH.zip user@destination_server:/volumen/wp/
-    #scp $WORDPRESS_SITE_PATH.sql user@destination_server:/volumen/db/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+ 
 
 else
     # WordPress site is Vanilla
@@ -39,6 +38,6 @@ else
     mysqldump -u $MYSQL_USER -p $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
 
     # Transfer the .zip and .sql files to the destination server
-    rsync -a -e ssh $WORDPRESS_SITE_PATH.zip REMOTE_USER@REMOTE_HOST:/REMOTE_PATH/wp/
-    rsync -a -e ssh $WORDPRESS_SITE_PATH.sql REMOTE_USER@REMOTE_HOST:/REMOTE_PATH/db/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 fi
