@@ -9,6 +9,7 @@
 # read -p "Enter remote user: " REMOTE_USER
 # read -p "Enter remote host: " REMOTE_HOST
 # read -p "Enter remote path: " REMOTE_PATH
+echo "uso: ./transfer.sh WORDPRESS_SITE_PATH MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH"
 
 # Use command line arguments instead of prompts
 WORDPRESS_SITE_PATH=$1
@@ -30,7 +31,7 @@ if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
     zip -r $WORDPRESS_SITE_PATH.zip .
 
     # Extract the BDD from the WordPress site
-    mysqldump -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
+    mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
 
     # Transfer the .zip and .sql files to the destination server
     rsync -a -e ssh $WORDPRESS_SITE_PATH.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
@@ -42,7 +43,7 @@ else
     zip -r $WORDPRESS_SITE_PATH.zip ./wp-content
 
     # Extract the BDD from the WordPress site
-    mysqldump -u $MYSQL_USER -p $MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
+    mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
 
     # Transfer the .zip and .sql files to the destination server
     rsync -a -e ssh $WORDPRESS_SITE_PATH.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
