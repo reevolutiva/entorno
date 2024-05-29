@@ -17,11 +17,11 @@ WORDPRESS_SITE=$1
 WORDPRESS_SITE_PATH=$2
 MYSQL_HOST=$3
 MYSQL_USER=$4
-MYSQL_PASSWORD=$6
-MYSQL_DATABASE=$7
-REMOTE_USER=$8
-REMOTE_HOST=$9
-REMOTE_PATH=$10
+MYSQL_PASSWORD=$5
+MYSQL_DATABASE=$6
+REMOTE_USER=$7
+REMOTE_HOST=$8
+REMOTE_PATH=$9
 
 # Extract the WordPress site from the server origin
 cd $WORDPRESS_SITE_PATH
@@ -29,20 +29,20 @@ cd $WORDPRESS_SITE_PATH
 
 if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
 
-    echo "site"
-    echo $WORDPRESS_SITE_PATH . $WORDPRESS_SITE.sql
+    #echo "site"
+    #echo $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
 
     # WordPress site is Bedrock
     cd $WORDPRESS_SITE_PATH/web
-    zip -r $WORDPRESS_SITE_PATH.zip .
+    zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
 
     # Extract the BDD from the WordPress site
-    mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH.sql
+    mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
 
     # Transfer the .zip and .sql files to the destination server
-    rsync -a -e ssh $WORDPRESS_SITE_PATH.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 
-    rsync -a -e ssh $WORDPRESS_SITE_PATH.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 
 else
     # WordPress site is Vanilla
