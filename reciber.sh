@@ -1,56 +1,110 @@
 #!/bin/bash
 
-# Ask user for input for placeholders
-echo "Enter your app name:"
-read my_app
-echo "Enter your domain name:"
-read your_domain
-echo "Enter your email:"
-read your_email
-echo "Enter your DB password:"
-read your_db_password
-echo "Enter your DB user:"
-read your_db_user
-echo "Enter your WP user:"
-read your_wp_user
-echo "Enter your WP password:"
-read your_wp_password
-echo "Enter your new DB name:"
-read new_db_name
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -a|--app)
+        my_app="$2"
+        shift
+        shift
+        ;;
+        -d|--domain)
+        your_domain="$2"
+        shift
+        shift
+        ;;
+        -e|--email)
+        your_email="$2"
+        shift
+        shift
+        ;;
+        -p|--db-password)
+        your_db_password="$2"
+        shift
+        shift
+        ;;
+        -u|--db-user)
+        your_db_user="$2"
+        shift
+        shift
+        ;;
+        -w|--wp-user)
+        your_wp_user="$2"
+        shift
+        shift
+        ;;
+        -wp|--wp-password)
+        your_wp_password="$2"
+        shift
+        shift
+        ;;
+        -n|--new-db-name)
+        new_db_name="$2"
+        shift
+        shift
+        ;;
+        -h|--help)
+        echo "Usage: reciber.sh [OPTIONS]"
+        echo "Options:"
+        echo "  -a, --app           Specify the app name"
+        echo "  -d, --domain        Specify the domain"
+        echo "  -e, --email         Specify the email"
+        echo "  -p, --db-password   Specify the database password"
+        echo "  -u, --db-user       Specify the database user"
+        echo "  -w, --wp-user       Specify the WordPress user"
+        echo "  -wp, --wp-password  Specify the WordPress password"
+        echo "  -n, --new-db-name   Specify the new database name"
+        echo "  -h, --help          Show help"
+        exit 0
+        ;;
+        *)
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+done
 
-mkdir $my_app
+# Check if all required parameters are provided
+if [[ -z $my_app || -z $your_domain || -z $your_email || -z $your_db_password || -z $your_db_user || -z $your_wp_user || -z $your_wp_password || -z $new_db_name ]]; then
+    echo "Missing required parameters"
+    exit 1
+fi
+
+mkdir /home/hosting/reevolutiva-net/$your_domain
+chown -R 1000:1000 /home/hosting/reevolutiva-net/$your_domain 
 
 # Intanciaar un contenedor docker wp funcional
 # Clonar la plantilla desde entorno/templates/.env.temp a ./.env
-cp templates/.env.temp ./$my_app/.env
+cp templates/.env.temp /home/hosting/reevolutiva-net/$your_domain/.env
 
 # Clonar la plantilla desde temp-docker-compose.yml a ./docker-compose.yml
-cp templates/temp-docker-compose.yml ./$my_app/docker-compose.yml
+cp templates/temp-docker-compose.yml /home/hosting/reevolutiva-net/$your_domain/docker-compose.yml
 
 # Reemplazar en el .env y en la plantilla de docker-compose
-sed -i "s/<my_app>/$my_app/g" ./$my_app/.env
-sed -i "s/<my_app>/$my_app/g" ./$my_app/docker-compose.yml
-sed -i "s/<my_domain>/$your_domain/g" ./$my_app/docker-compose.yml
-sed -i "s/<my_domain>/$your_domain/g" ./$my_app/.env
-sed -i "s/info@<my_domain>/$your_email/g" ./$my_app/.env
-sed -i "s/<bd_password>/$your_db_password/g" ./$my_app/.env
-sed -i "s/<user_bdd>/$your_db_user/g" ./$my_app/.env
-sed -i "s/<user_wp>/$your_wp_user/g" ./$my_app/.env
-sed -i "s/<your_wp_password>/$your_wp_password/g" ./$my_app/.env
-sed -i "s/<your_db_name>/$new_db_name/g" ./$my_app/.env
+sed -i "s/<my_app>/$my_app/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/<my_app>/$my_app/g" /home/hosting/reevolutiva-net/$your_domain/docker-compose.yml
+sed -i "s/<my_domain>/$your_domain/g" /home/hosting/reevolutiva-net/$your_domain/docker-compose.yml
+sed -i "s/<my_domain>/$your_domain/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/info@<my_domain>/$your_email/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/<bd_password>/$your_db_password/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/<user_bdd>/$your_db_user/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/<user_wp>/$your_wp_user/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/<your_wp_password>/$your_wp_password/g" /home/hosting/reevolutiva-net/$your_domain/.env
+sed -i "s/<your_db_name>/$new_db_name/g" /home/hosting/reevolutiva-net/$your_domain/.env
 
 # Crear una carpeta con el nombre del sitio para almacenar sus volumnes
-mkdir $my_app/wp
-mkdir $my_app/db
-mkdir $my_app/log
+mkdir /home/hosting/$your_domain/wp
+mkdir /home/hosting/$your_domain/db
+mkdir /home/hosting/$your_domain/log
 
 # Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
-chown -R 1000:1000 $my_app/wp 
-chown -R 1000:1000 $my_app/db 
-chown -R 1000:1000 $my_app/log
+chown -R 1000:1000 /home/hosting/$your_domain/wp 
+chown -R 1000:1000 /home/hosting/$your_domain/db 
+chown -R 1000:1000 /home/hosting/$your_domain/log
 
 # Levantamos el docker-compose.yml
-docker-compose up -d
+#docker-compose up -d
 
 # Copiamos el archivo .zip a la carpeta wp
 # cd wp
