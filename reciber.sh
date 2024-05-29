@@ -44,6 +44,11 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
+        -b|--is-bedrock)
+        is_bedrock="$2"
+        shift
+        shift
+        ;;
         -h|--help)
         echo "Usage: reciber.sh [OPTIONS]"
         echo "Options:"
@@ -55,6 +60,7 @@ while [[ $# -gt 0 ]]; do
         echo "  -w, --wp-user       Specify the WordPress user"
         echo "  -wp, --wp-password  Specify the WordPress password"
         echo "  -n, --new-db-name   Specify the new database name"
+        echo "  -b, --is-bedrock    Specify if it is a Bedrock app (true/false)"
         echo "  -h, --help          Show help"
         exit 0
         ;;
@@ -71,7 +77,7 @@ if [[ -z $my_app || -z $your_domain || -z $your_email || -z $your_db_password ||
     exit 1
 fi
 
-mkdir /home/hosting/reevolutiva-net/$your_domain
+# mkdir /home/hosting/reevolutiva-net/$your_domain
 chown -R 1000:1000 /home/hosting/reevolutiva-net/$your_domain 
 
 # Intanciaar un contenedor docker wp funcional
@@ -79,7 +85,14 @@ chown -R 1000:1000 /home/hosting/reevolutiva-net/$your_domain
 cp templates/.env.temp /home/hosting/reevolutiva-net/$your_domain/.env
 
 # Clonar la plantilla desde temp-docker-compose.yml a ./docker-compose.yml
-cp templates/temp-docker-compose.yml /home/hosting/reevolutiva-net/$your_domain/docker-compose.yml
+
+if [[ $is_bedrock == "true" ]]; then
+    echo "Es bedrock"
+   cp templates/temp-docker-compose-bedrock.yml /home/hosting/reevolutiva-net/$your_domain/docker-compose.yml
+else
+    echo "No Es bedrock"
+   cp templates/temp-docker-compose.yml /home/hosting/reevolutiva-net/$your_domain/docker-compose.yml
+fi
 
 # Reemplazar en el .env y en la plantilla de docker-compose
 sed -i "s/<my_app>/$my_app/g" /home/hosting/reevolutiva-net/$your_domain/.env
@@ -98,32 +111,68 @@ mkdir /home/hosting/$your_domain/wp
 mkdir /home/hosting/$your_domain/db
 mkdir /home/hosting/$your_domain/log
 
-# Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
+# # Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
 chown -R 1000:1000 /home/hosting/$your_domain/wp 
 chown -R 1000:1000 /home/hosting/$your_domain/db 
 chown -R 1000:1000 /home/hosting/$your_domain/log
 
+# Entrar a la carpeta del docker-compose
+cd /home/hosting/reevolutiva-net/$your_domain
+
 # Levantamos el docker-compose.yml
-#docker-compose up -d
+docker compose up -d
 
-# Copiamos el archivo .zip a la carpeta wp
-# cd wp
-# unzip <your_app_name>.zip
-# cd ..
+# Nos movemos a los volumenes de la carpeta wp
+cd /home/hosting/$your_domain
 
-# # Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
-# chmod -R 755 wp/<your_app_name>
+mkdir temp/
 
-# # Entramos a la terminal del contenedor mysql.
-# # Entramos a mysql.
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "CREATE DATABASE IF NOT EXISTS <your_db_name>;"
-# docker-compose exec db_<your_app_name> mysql <your_db_name>.sql
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "GRANT ALL PRIVILEGES ON <your_db_name>. * TO '<your_db_user>'@'localhost' IDENTIFIED BY '<your_db_password>';"
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL general_log = 'ON';"
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL log_output = 'FILE';"
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL log_file = '/var/log/mysql/<your_db_name>.log';"
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "SET GLOBAL log_slow_verbosity = 'QUERY_PLANS';"
-# docker-compose exec db_<your_app_name> mysql -u <your_db_user> -p <your_db_password> -e "FLUSH LOGS;"
+mv $your_domain.zip /home/hosting/kban.cl/temp/
+mv $your_domain.sql /home/hosting/$your_domain/db
 
-# # Cambiamos el nombre de la BDD en wp-config.php
-# sed -i "s/<your_db_name>/$new_db_name/g" wp/<your_app_name>/wp-config.php
+cd temp/
+
+unzip $your_domain.zip
+
+cd ..
+
+# Eliminamos el contenido actual de app
+rm -r /home/hosting/$your_domain/wp/web/app
+
+#Movemos el contenido de temp a app
+mv /home/hosting/$your_domain/temp/app /home/hosting/$your_domain/wp/web/
+
+# Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
+chmod -R 755 /home/hosting/$your_domain/wp/
+chmod -R 755 /home/hosting/$your_domain/db/
+
+
+# Entramos a la terminal del contenedor mysql.
+# Entramos a mysql.
+
+# Remueve de esta variable el punto y devuelve un string nuevo $your_domain
+new_domain="${your_domain//./}"
+
+# $new_domain-wp_$my_app-1
+# $new_domain-db_$my_app-1
+
+docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju  -e "CREATE DATABASE IF NOT EXISTS $new_db_name;"
+docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju $new_db_name -e "SOURCE $your_domain.sql;"
+docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju -e "GRANT ALL PRIVILEGES ON $new_db_name.* TO '$your_wp_user';"
+
+
+# Cambiamos el nombre de la BDD en wp-config.php
+# Si es bedrock cambia el .env
+
+to_erace=$my_app'_dev'
+
+if [[ $is_bedrock == "true" ]]; then
+   sed -i "s/DB_NAME='$to_erace'/DB_NAME='$new_db_name'/g" /home/hosting/$your_domain/wp/.env
+   echo "Es bedrock"
+else
+   sed -i "s/define( 'DB_NAME', '$to_erace' );/define( 'DB_NAME', '$new_db_name' );/g" /home/hosting/$your_domain/wp-config.php
+   echo "No es bedrock"
+fi
+
+
+
