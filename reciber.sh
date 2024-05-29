@@ -77,7 +77,7 @@ if [[ -z $my_app || -z $your_domain || -z $your_email || -z $your_db_password ||
     exit 1
 fi
 
-# mkdir /home/hosting/reevolutiva-net/$your_domain
+mkdir /home/hosting/reevolutiva-net/$your_domain
 chown -R 1000:1000 /home/hosting/reevolutiva-net/$your_domain 
 
 # Intanciaar un contenedor docker wp funcional
@@ -127,7 +127,7 @@ cd /home/hosting/$your_domain
 
 mkdir temp/
 
-mv $your_domain.zip /home/hosting/kban.cl/temp/
+mv $your_domain.zip /home/hosting/$your_domain/temp/
 mv $your_domain.sql /home/hosting/$your_domain/db
 
 cd temp/
@@ -136,11 +136,20 @@ unzip $your_domain.zip
 
 cd ..
 
-# Eliminamos el contenido actual de app
-rm -r /home/hosting/$your_domain/wp/web/app
+#Si es bedrock Eliminamos el contenido actual de app
+if [[ $is_bedrock == "true" ]]; then
+    echo "Es bedrock"
+    rm -r /home/hosting/$your_domain/wp/web/app
+    #Movemos el contenido de temp a app
+    mv /home/hosting/$your_domain/temp/app /home/hosting/$your_domain/wp/web/
 
-#Movemos el contenido de temp a app
-mv /home/hosting/$your_domain/temp/app /home/hosting/$your_domain/wp/web/
+else
+    echo "No Es bedrock"
+    rm -r /home/hosting/$your_domain/wp/wp-content/
+    mv /home/hosting/$your_domain/temp/ /home/hosting/$your_domain/wp/wp-content/
+fi
+
+
 
 # Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
 chmod -R 755 /home/hosting/$your_domain/wp/
@@ -170,7 +179,7 @@ if [[ $is_bedrock == "true" ]]; then
    sed -i "s/DB_NAME='$to_erace'/DB_NAME='$new_db_name'/g" /home/hosting/$your_domain/wp/.env
    echo "Es bedrock"
 else
-   sed -i "s/define( 'DB_NAME', '$to_erace' );/define( 'DB_NAME', '$new_db_name' );/g" /home/hosting/$your_domain/wp-config.php
+   sed -i "s/define( 'DB_NAME', '$to_erace' );/define( 'DB_NAME', '$new_db_name' );/g" /home/hosting/$your_domain/wp/wp-config.php
    echo "No es bedrock"
 fi
 
