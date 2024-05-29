@@ -49,6 +49,7 @@ else
     # WordPress site is Vanilla
     zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
 
+    echo $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
     # Extract the BDD from the WordPress site
     mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
 
