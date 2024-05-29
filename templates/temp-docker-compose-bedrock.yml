@@ -128,7 +128,8 @@ services:
       
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.rule=Host(`${DEMYX_APP_DOMAIN}`)"
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.entrypoints=https"
-       - "traefik.http.routers.eemprendedor-https.tls.certresolver=reevolutivaresolver"
+      - traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls=true
+      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.certresolver=reevolutivaresolver"
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.service=${DEMYX_APP_COMPOSE_PROJECT}-https-port"
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.priority=10"
       - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-https-port.loadbalancer.server.port=80"
