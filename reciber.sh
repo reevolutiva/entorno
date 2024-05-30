@@ -159,13 +159,13 @@ chmod -R 755 /home/hosting/$your_domain/db/
 # Entramos a la terminal del contenedor mysql.
 # Entramos a mysql.
 
-# Remueve de esta variable el punto y devuelve un string nuevo $your_domain
+# # Remueve de esta variable el punto y devuelve un string nuevo $your_domain
 new_domain="${your_domain//./}"
 
 # $new_domain-wp_$my_app-1
 # $new_domain-db_$my_app-1
 
-docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju  -e "CREATE DATABASE IF NOT EXISTS $new_db_name;"
+docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju  -e "CREATE DATABASE ${new_db_name};"
 docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju $new_db_name -e "SOURCE $your_domain.sql;"
 docker exec $new_domain-db_$my_app-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju -e "GRANT ALL PRIVILEGES ON $new_db_name.* TO '$your_wp_user';"
 
