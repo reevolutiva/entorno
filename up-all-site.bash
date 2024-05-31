@@ -22,32 +22,4 @@ find $path_to_scan -maxdepth 1 -mindepth 1 -type d | while read -r dir; do
         app_id=$(grep -E '^DEMYX_APP_ID=' "$dir/.env" | cut -d '=' -f2-)
         app_container=$(grep -E '^DEMYX_APP_CONTAINER=' "$dir/.env" | cut -d '=' -f2-)
         db_name=$(grep -E '^WORDPRESS_DB_NAME=' "$dir/.env" | cut -d '=' -f2-)
-        db_user=$(grep -E '^WORDPRESS_DB_USER=' "$dir/.env" | cut -d '=' -f2-)
-        wp_user=$(grep -E '^WORDPRESS_USER=' "$dir/.env" | cut -d '=' -f2-)
-        wp_user_password=$(grep -E '^WORDPRESS_USER_PASSWORD=' "$dir/.env" | cut -d '=' -f2-)
-        if [ -n "$domain" ]; then
-            echo "DEMYX_APP_DOMAIN: $domain"
-        fi
-        if [ -n "$app_id" ]; then
-            echo "DEMYX_APP_ID: $app_id"
-        fi
-        if [ -n "$app_container" ]; then
-            echo "DEMYX_APP_CONTAINER: $app_container"
-        fi
-        if [ -n "$db_name" ]; then
-            echo "WORDPRESS_DB_NAME: $db_name"
-        fi
-        if [ -n "$db_user" ]; then
-            echo "WORDPRESS_DB_USER: $db_user"
-        fi
-        if [ -n "$wp_user" ]; then
-            echo "WORDPRESS_USER: $wp_user"
-        fi
-        if [ -n "$wp_user_password" ]; then
-            echo "WORDPRESS_USER_PASSWORD: $wp_user_password"
-        fi
-
-        echo " "
-        echo "=========="
-    fi
-done
+        db_user=$(grep -E '^WORDPRESS_DB_USER=' "$dir/.
