@@ -17,8 +17,11 @@ fi
 if [ -f "$src/docker-compose.yml" ]; then
     # Change to the directory containing docker-compose.yml
     cd "$src" || exit 1
+    echo "Fue encontrado un docker compose en $src..."
+    echo "Levantando contenedor en $src..."
     # Execute docker compose down
     docker compose down
+    echo "Contenedor levantado"
 else
     echo "Error: No docker-compose.yml found in the provided path: $src"
     exit 1
