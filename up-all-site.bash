@@ -1,4 +1,7 @@
 #!/bin/bash
 
-# List all directories inside /home/hosting/reevolutiva-net/
-find /home/hosting/reevolutiva-net/ -type d -maxdepth 1 -mindepth 1
+# Get the path to scan from the environment variable
+path_to_scan=$(printenv PATH_TO_SCAN)
+
+# List all directories inside the specified path
+find $path_to_scan -type d -maxdepth 1 -mindepth 1
