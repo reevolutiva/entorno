@@ -107,6 +107,7 @@ sed -i "s/<your_wp_password>/$your_wp_password/g" /home/hosting/reevolutiva-net/
 sed -i "s/<your_db_name>/$new_db_name/g" /home/hosting/reevolutiva-net/$your_domain/.env
 
 # Crear una carpeta con el nombre del sitio para almacenar sus volumnes
+mkdir /home/hosting/$your_domain/
 mkdir /home/hosting/$your_domain/wp
 mkdir /home/hosting/$your_domain/db
 mkdir /home/hosting/$your_domain/log

@@ -103,29 +103,19 @@ sed -i "s/<user_bdd>/$YOUR_DB_USER/g" /home/hosting/reevolutiva-net/$YOUR_DOMAIN
 sed -i "s/<user_wp>/$YOUR_WP_USER/g" /home/hosting/reevolutiva-net/$YOUR_DOMAIN/.env
 sed -i "s/<your_wp_password>/$YOUR_WP_PASSWORD/g" /home/hosting/reevolutiva-net/$YOUR_DOMAIN/.env
 sed -i "s/<your_db_name>/$NEW_DB_NAME/g" /home/hosting/reevolutiva-net/$YOUR_DOMAIN/.env
+
 # Crear una carpeta con el nombre del sitio para almacenar sus volumnes
-mkdir /home/hosting/$YOUR_DOMAIN/wp
-mkdir /home/hosting/$YOUR_DOMAIN/db
-mkdir /home/hosting/$YOUR_DOMAIN/log
+mkdir /home/hosting/$YOUR_DOMAIN/
+mkdir /home/hosting/$YOUR_DOMAIN/wp/
+mkdir /home/hosting/$YOUR_DOMAIN/db/
+mkdir /home/hosting/$YOUR_DOMAIN/log/
 # # Cambiamos el owner de la carpeta y todas su subcarpetas por el usuario 1000
-chown -R 1000:1000 /home/hosting/$YOUR_DOMAIN/wp 
-chown -R 1000:1000 /home/hosting/$YOUR_DOMAIN/db 
-chown -R 1000:1000 /home/hosting/$YOUR_DOMAIN/log
+chown -R 1000:1000 /home/hosting/$YOUR_DOMAIN/
 # Entrar a la carpeta del docker-compose
 cd /home/hosting/reevolutiva-net/$YOUR_DOMAIN
 # Levantamos el docker-compose.yml
 docker compose up -d
 # Nos movemos a los volumenes de la carpeta wp
 cd /home/hosting/$YOUR_DOMAIN
-# Cambiamos los permisos de todos los ficheros dentro de la carpeta wp
-chmod -R 755 /home/hosting/$YOUR_DOMAIN/wp/
-chmod -R 755 /home/hosting/$YOUR_DOMAIN/db/
-# Entramos a la terminal del contenedor mysql.
-# Entramos a mysql.
-# # Remueve de esta variable el punto y devuelve un string nuevo $YOUR_DOMAIN
-NEW_DOMAIN="${YOUR_DOMAIN//./}"
-# $new_domain-wp_$MY_APP-1
-# $new_domain-db_$MY_APP-1
-docker exec $NEW_DOMAIN-db_$MY_APP-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju  -e "CREATE DATABASE ${NEW_DB_NAME};"
-docker exec $NEW_DOMAIN-db_$MY_APP-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju $NEW_DB_NAME -e "SOURCE $YOUR_DOMAIN.sql;"
-docker exec $NEW_DOMAIN-db_$MY_APP-1 mysql -uroot -pIL2zdC4XPrKstbDyCGju -e "GRANT ALL PRIVILEGES ON $NEW_DB_NAME.* TO '$YOUR_WP_USER';"
+
+echo "$YOUR_DOMAIN creado exitosamente!"
