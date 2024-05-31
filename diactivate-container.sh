@@ -13,5 +13,13 @@ if [ -z "$src" ]; then
     exit 1
 fi
 
-# Add your code here to deactivate the container using the provided src path
-echo "Deactivating container for path: $src"
+# Check if docker-compose.yml exists in the provided src path
+if [ -f "$src/docker-compose.yml" ]; then
+    # Change to the directory containing docker-compose.yml
+    cd "$src" || exit 1
+    # Execute docker compose down
+    docker compose down
+else
+    echo "Error: No docker-compose.yml found in the provided path: $src"
+    exit 1
+fi
