@@ -1,38 +1,50 @@
+# Import necessary modules and classes
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from typing import List
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
+# Create FastAPI app instance
 app = FastAPI()
+
+# Set up OAuth2 password bearer for token-based authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+# Define a Pydantic model for token data
 class TokenData(BaseModel):
     username: str = None
 
+# Define a class for managing WebSocket connections
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket, token: str = Depends(oauth2_scheme)):
         try:
+            # Decode the JWT token and check if the username is valid
             payload = jwt.decode(token, "secret", algorithms=["HS256"])
             username = payload.get("sub")
             if username is None:
                 raise JWTError("Invalid token")
+            # Accept the WebSocket connection and add it to the list of active connections
             await websocket.accept()
             self.active_connections.append(websocket)
         except JWTError:
             raise JWTError("Invalid token")
 
     def disconnect(self, websocket: WebSocket):
+        # Remove the WebSocket connection from the list of active connections
         self.active_connections.remove(websocket)
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
+        # Send a personal message to the specified WebSocket connection
         await websocket.send_text(message)
 
+# Create an instance of the ConnectionManager class
 manager = ConnectionManager()
 
+# Define a WebSocket endpoint for the mount operation
 @app.websocket("/mount")
 async def mount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     await manager.connect(websocket, token)
@@ -43,6 +55,7 @@ async def mount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+# Define a WebSocket endpoint for the unmount operation
 @app.websocket("/unmount")
 async def unmount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     await manager.connect(websocket, token)
@@ -53,6 +66,7 @@ async def unmount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+# Define a WebSocket endpoint for the delete operation
 @app.websocket("/delete")
 async def delete(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     await manager.connect(websocket, token)
