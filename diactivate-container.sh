@@ -1,18 +1,17 @@
 #!/bin/bash
 
-# Check if the flag is provided
-if [ "$1" == "--src="* ]; then
-    # Get the path to docker-compose.yml
-    DOCKER_COMPOSE_PATH=${1#*=}
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --src) src="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
 
-    echo $DOCKER_COMPOSE_PATH
-
-    # Check if the file exists
-    if [ -f "$DOCKER_COMPOSE_PATH" ]; then
-        # Execute docker compose down
-        echo "$DOCKER_COMPOSE_PATH" 
-        docker compose -f "$DOCKER_COMPOSE_PATH" down
-    else
-        echo "docker-compose.yml not found"
-    fi
+if [ -z "$src" ]; then
+    echo "Error: --src parameter is required."
+    exit 1
 fi
+
+# Add your code here to deactivate the container using the provided src path
+echo "Deactivating container for path: $src"
