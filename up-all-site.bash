@@ -4,4 +4,4 @@
 path_to_scan=$(printenv PATH_TO_SCAN)
 
 # List all directories inside the specified path
-find $path_to_scan -type d -maxdepth 1 -mindepth 1
+find $path_to_scan -maxdepth 1 -mindepth 1 -type d
