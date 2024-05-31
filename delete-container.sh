@@ -12,9 +12,6 @@ app_name=$1
 # Run docker ps to list all containers
 containers=$(docker ps --format "{{.Names}}")
 
-# Check if the container with the given name exists
-if echo "$containers" | grep -q ".*$app_name.*"; then
-    echo "Container with name containing $app_name exists."
-else
-    echo "Container with name containing $app_name does not exist."
-fi
+# List all containers with names containing the given app_name
+echo "Containers with names containing $app_name:"
+echo "$containers" | grep ".*$app_name.*"
