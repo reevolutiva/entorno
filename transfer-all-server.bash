@@ -16,5 +16,15 @@ while getopts ":s:d:u:i:" opt; do
   esac
 done
 
+# Print message before transferring
+echo "Transferring..."
+
 # Use rsync to transfer the source path to the destination path
 rsync -avz -e "ssh" --include="*/" --include="*.*" --exclude="*" "$SOURCE_PATH" "$DESTINATION_USER@$DESTINATION_IP:$DESTINATION_PATH"
+
+# Check if rsync was successful
+if [ $? -eq 0 ]; then
+    echo "Transfer successful"
+else
+    echo "Transfer failed"
+fi
