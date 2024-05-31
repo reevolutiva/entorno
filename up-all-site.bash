@@ -15,6 +15,7 @@ fi
 find $path_to_scan -maxdepth 1 -mindepth 1 -type d | while read -r dir; do
     if [ -f "$dir/.env" ]; then
         # Read the .env file and search for DEMYX_APP_DOMAIN, DEMYX_APP_ID, DEMYX_APP_CONTAINER, WORDPRESS_DB_NAME, WORDPRESS_DB_USER, WORDPRESS_USER, WORDPRESS_USER_PASSWORD
+        echo "Directory: $dir"
         domain=$(grep -E '^DEMYX_APP_DOMAIN=' "$dir/.env" | cut -d '=' -f2-)
         app_id=$(grep -E '^DEMYX_APP_ID=' "$dir/.env" | cut -d '=' -f2-)
         app_container=$(grep -E '^DEMYX_APP_CONTAINER=' "$dir/.env" | cut -d '=' -f2-)
