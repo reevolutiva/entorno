@@ -29,12 +29,12 @@ if [ -f "$src/docker-compose.yml" ]; then
     if [ "$response" = "y" ]; then
         # Remove the directory containing docker-compose.yml
         rm -rf "$src"
-        echo "Carpeta eliminada"
+        echo "Carpeta eliminada $src"
 
         # Check if --src-vol parameter is provided and user wants to delete it
         if [ -n "$src_vol" ] && [ "$response" = "y" ]; then
             rm -rf "$src_vol"
-            echo "Carpeta en el segundo parámetro eliminada"
+            echo "Carpeta eliminada $src_vol"
         fi
     fi
 else
