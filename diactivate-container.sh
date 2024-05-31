@@ -3,6 +3,7 @@
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --src) src="$2"; shift ;;
+        --src-vol) src_vol="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -29,6 +30,12 @@ if [ -f "$src/docker-compose.yml" ]; then
         # Remove the directory containing docker-compose.yml
         rm -rf "$src"
         echo "Carpeta eliminada"
+
+        # Check if --src-vol parameter is provided and user wants to delete it
+        if [ -n "$src_vol" ] && [ "$response" = "y" ]; then
+            rm -rf "$src_vol"
+            echo "Carpeta en el segundo parámetro eliminada"
+        fi
     fi
 else
     echo "Error: No docker-compose.yml found in the provided path: $src"
