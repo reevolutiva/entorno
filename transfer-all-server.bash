@@ -3,6 +3,10 @@
 # Check if all flags are provided
 if [ "$#" -ne 4 ]; then
     echo "Usage: $0 -s <source_path> -d <destination_path> -u <destination_user> -i <destination_ip>"
+    echo "  -s, --source-path    Source path to transfer"
+    echo "  -d, --destination-path Destination path to transfer to"
+    echo "  -u, --destination-user Destination user"
+    echo "  -i, --destination-ip   Destination IP address"
     exit 1
 fi
 
