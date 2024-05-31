@@ -39,7 +39,9 @@ find $path_to_scan -maxdepth 1 -mindepth 1 -type d | while read -r dir; do
         if [ -f "$dir/docker-compose.yml" ]; then
             # Change to the directory and run docker compose up -d
             cd "$dir" || exit
+            echo "levantando contenedor $domain"
             docker compose up -d
+            echo "contenedor $domain levantado correctamente"
         fi
     fi
 done
