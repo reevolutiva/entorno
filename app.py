@@ -5,6 +5,23 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
+fake_users_db = {
+    "johndoe": {
+        "username": "johndoe",
+        "full_name": "John Doe",
+        "email": "johndoe@example.com",
+        "hashed_password": "fakehashedsecret",
+        "disabled": False,
+    },
+    "alice": {
+        "username": "alice",
+        "full_name": "Alice Wonderson",
+        "email": "alice@example.com",
+        "hashed_password": "fakehashedsecret2",
+        "disabled": True,
+    },
+}
+
 # Create FastAPI app instance
 app = FastAPI()
 
@@ -80,6 +97,7 @@ async def delete(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
 # Define a GET endpoint for the log operation
 @app.get("/log")
 async def log(token: str = Depends(oauth2_scheme)):
+
     try:
         # Decode the JWT token and check if the username is valid
         payload = jwt.decode(token, "secret", algorithms=["HS256"])
