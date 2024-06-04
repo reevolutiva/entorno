@@ -36,7 +36,7 @@ fi
 echo "Transferring..."
 
 # Use rsync to transfer the source path to the destination path
-rsync -avz -e "ssh" --include="*/" --include="*.*" --exclude="*" "$SOURCE_PATH" "$DESTINATION_USER@$DESTINATION_IP:$DESTINATION_PATH"
+#rsync -avz -e "ssh" --include="*/" --include="*.*" --exclude="*" "$SOURCE_PATH" "$DESTINATION_USER@$DESTINATION_IP:$DESTINATION_PATH"
 
 # Check if rsync was successful
 if [ $? -eq 0 ]; then
