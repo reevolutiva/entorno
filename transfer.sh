@@ -23,6 +23,11 @@ REMOTE_USER=$7
 REMOTE_HOST=$8
 REMOTE_PATH=$9
 
+# Load variables from .env file if it exists
+if [ -f "$WORDPRESS_SITE_PATH/.env" ]; then
+    export $(grep -v '^#' $WORDPRESS_SITE_PATH/.env | xargs)
+fi
+
 # Extract the WordPress site from the server origin
 cd $WORDPRESS_SITE_PATH
 #zip -r $WORDPRESS_SITE_PATH.zip .
