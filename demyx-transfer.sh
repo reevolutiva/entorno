@@ -1,17 +1,17 @@
-echo "uso: ./demyx-transfer.sh WORDPRESS_SITE WORDPRESS_SITE_PATH MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH"
+echo "uso: ./demyx-transfer.sh WORDPRESS_SITE  MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH DEMYX"
 
 # Use command line arguments instead of prompts
 WORDPRESS_SITE=$1
-WORDPRESS_SITE_PATH=$2
-MYSQL_HOST=$3
-MYSQL_USER=$4
-MYSQL_PASSWORD=$5
-MYSQL_DATABASE=$6
-REMOTE_USER=$7
-REMOTE_HOST=$8
-REMOTE_PATH=$9
+MYSQL_USER=$2
+MYSQL_PASSWORD=$3
+MYSQL_DATABASE=$4
+REMOTE_USER=$5
+REMOTE_HOST=$6
+REMOTE_PATH=$7
+DEMYX=$8
 
-DEMYX="3cj9i" 
+WORDPRESS_SITE_PATH="/var/lib/docker/volumes"
+
 
 
 
@@ -23,22 +23,27 @@ if [[ "$DEMYX" != "false" ]]; then
     DEMYX_WP_FOLDER="$WORDPRESS_SITE_PATH/wp_$DEMYX/"
     DEMYX_DB_FOLDER="$WORDPRESS_SITE_PATH/wp_${DEMYX}_db/"
 
+    echo $DEMYX
+    echo $DEMYX_DB_FOLDER
+
     echo $DEMYX_WP_FOLDER
 
     if [ -d "$DEMYX_WP_FOLDER" ]; then
         cd $DEMYX_WP_FOLDER
-        ls -la
-        #zip -r ./$WORDPRESS_SITE.zip ./_data/
+        zip -r ./$WORDPRESS_SITE.zip ./_data/
     else
         echo "$DEMYX_WP_FOLDER folder not found."
     fi
 
     if [ -d "$DEMYX_DB_FOLDER" ]; then
         cd $DEMYX_DB_FOLDER
-        ls -la
         # Extract the BDD from the WordPress site
-        #mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $DEMYX_DB_FOLDER$WORDPRESS_SITE.sql
+        demyx exec $WORDPRESS_SITE -d mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $DEMYX_DB_FOLDER$WORDPRESS_SITE.sql
     else
         echo "$DEMYX_DB_FOLDER folder not found."
     fi
+
+    #rsync -a -e ssh $DEMYX_WP_FOLDER/$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    #rsync -a -e ssh $DEMYX_DB_FOLDER/$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 fi
+
