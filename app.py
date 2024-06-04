@@ -95,20 +95,6 @@ async def delete(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-# Define a GET endpoint for the log operation
-@app.get("/log")
-async def log(token: str = Depends(oauth2_scheme)):
-
-    try:
-        # Decode the JWT token and check if the username is valid
-        payload = jwt.decode(token, "secret", algorithms=["HS256"])
-        username = payload.get("sub")
-        if username is None:
-            raise JWTError("Invalid token")
-        # Return a log message
-        return {"message": "Log operation completed"}
-    except JWTError:
-        raise JWTError("Invalid token")
 
 # Define a POST endpoint for token authentication
 @app.post("/token")
