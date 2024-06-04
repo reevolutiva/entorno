@@ -28,6 +28,8 @@ if [ -f "$WORDPRESS_SITE_PATH/.env" ]; then
     export $(grep -v '^#' $WORDPRESS_SITE_PATH/.env | xargs)
 fi
 
+echo $OPENROUTER_API_KEY
+
 # Extract the WordPress site from the server origin
 cd $WORDPRESS_SITE_PATH
 #zip -r $WORDPRESS_SITE_PATH.zip .
@@ -42,23 +44,24 @@ if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
     zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
 
     # Extract the BDD from the WordPress site
-    mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
+   # mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
 
     # Transfer the .zip and .sql files to the destination server
-    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    #rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 
-    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    #rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+fi
 
-else
+if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
     cd $WORDPRESS_SITE_PATH/wp-content/
     # WordPress site is Vanilla
-    zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
+    #zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
 
     echo $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
     # Extract the BDD from the WordPress site
-    mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
+    #mysqldump -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql
 
     # Transfer the .zip and .sql files to the destination server
-    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
-    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    #rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    #rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 fi
