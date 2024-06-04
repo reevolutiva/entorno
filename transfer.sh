@@ -63,32 +63,32 @@ cd $WORDPRESS_SITE_PATH
 
 if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
 
-    #echo "site"
-    #echo $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
+    echo "site"
+    echo $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
 
     # WordPress site is Bedrock
     cd $WORDPRESS_SITE_PATH/web
     zip -r $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip .
 
     # Extract the BDD from the WordPress site
-   # mysqldump -u$MYSQL_USER -p$MARIADB_ROOT_PASSWORD" $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
+    mysqldump -u$MYSQL_USER -p$MARIADB_ROOT_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
 
-    # Transfer the .zip and .sql files to the destination server
-    #rsync -a -e ssh $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    #Transfer the .zip and .sql files to the destination server
+    rsync -a -e ssh $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 
-    #rsync -a -e ssh $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 fi
 
 if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
     cd $WORDPRESS_SITE_PATH/wp-content/
     # WordPress site is Vanilla
-    #zip -r $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip .
+    zip -r $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip .
 
     echo $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
     # Extract the BDD from the WordPress site
-    #mysqldump -u$MYSQL_USER -p$MARIADB_ROOT_PASSWORD" $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
+    mysqldump -u$MYSQL_USER -p$MARIADB_ROOT_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
 
     # Transfer the .zip and .sql files to the destination server
-    #rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
-    #rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+    rsync -a -e ssh $WORDPRESS_SITE_PATH$WORDPRESS_SITE.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
 fi
