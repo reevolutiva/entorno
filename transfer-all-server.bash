@@ -32,11 +32,20 @@ else
     exit 1
 fi
 
+# Parse JSON array
+JSON_ARRAY=($(echo "$JSON_CONTENT" | jq -r '.[].item'))
+
+# Loop through the array and execute transfer.sh with each item
+for ITEM in "${JSON_ARRAY[@]}"; do
+    echo "Executing transfer.sh with item: $ITEM"
+    bash transfer.sh "$ITEM"
+done
+
 # Print message before transferring
 echo "Transferring..."
 
 # Use rsync to transfer the source path to the destination path
-#rsync -avz -e "ssh" --include="*/" --include="*.*" --exclude="*" "$SOURCE_PATH" "$DESTINATION_USER@$DESTINATION_IP:$DESTINATION_PATH"
+rsync -avz -e "ssh" --include="*/" --include="*.*" --exclude="*" "$SOURCE_PATH" "$DESTINATION_USER@$DESTINATION_IP:$DESTINATION_PATH"
 
 # Check if rsync was successful
 if [ $? -eq 0 ]; then
