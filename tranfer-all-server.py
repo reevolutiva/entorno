@@ -20,11 +20,14 @@ def main():
         config = json.load(f)
         
         for item in config:
-            print(f'{item}')
-
-    # Run the demyx-transfer.sh script
-    script_args = ['WORDPRESS_SITE', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE', 'REMOTE_USER', 'REMOTE_HOST', 'REMOTE_PATH', 'DEMYX']
-    subprocess.run(['demyx-transfer.sh'] + script_args)
+            password = item['password']
+            domain = item['domain']
+            db = item['db']
+            demyx_id = item['demyx_id']
+            
+            # Run the demyx-transfer.sh script
+            script_args = [ domain, 'root', password , db , args.destination_user, args.destination_ip , args.destination_path , demyx_id ]
+            #subprocess.run(['demyx-transfer.sh'] + script_args)
 
 if __name__ == '__main__':
     main()
