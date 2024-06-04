@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import paramiko
+import subprocess
 
 def main():
     parser = argparse.ArgumentParser(description='Transfer files from source to destination.')
@@ -20,8 +21,10 @@ def main():
         
         for item in config:
             print(f'{item}')
-        
- 
+
+    # Run the demyx-transfer.sh script
+    script_args = ['WORDPRESS_SITE', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE', 'REMOTE_USER', 'REMOTE_HOST', 'REMOTE_PATH', 'DEMYX']
+    subprocess.run(['demyx-transfer.sh'] + script_args)
 
 if __name__ == '__main__':
     main()
