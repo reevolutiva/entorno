@@ -2,9 +2,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from typing import List
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
 from pydantic import BaseModel
-from datetime import timedelta
 
 fake_users_db = {
     "johndoe": {
@@ -40,16 +38,11 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, token: str = Depends(oauth2_scheme)):
         try:
-            # Decode the JWT token and check if the username is valid
-            payload = jwt.decode(token, "secret", algorithms=["HS256"])
-            username = payload.get("sub")
-            if username is None:
-                raise JWTError("Invalid token")
             # Accept the WebSocket connection and add it to the list of active connections
             await websocket.accept()
             self.active_connections.append(websocket)
-        except JWTError:
-            raise JWTError("Invalid token")
+        except Exception:
+            raise HTTPException("Invalid token")
 
     def disconnect(self, websocket: WebSocket):
         # Remove the WebSocket connection from the list of active connections
@@ -106,8 +99,4 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=30)
-    access_token = jwt.encode(
-        {"sub": user["username"]}, "secret", algorithm="HS256"
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": user["username"], "token_type": "bearer"}
