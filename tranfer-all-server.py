@@ -17,24 +17,11 @@ def main():
     # Load additional configuration from JSON file
     with open(args.json_file, 'r') as f:
         config = json.load(f)
-
-    # Create destination directory if it doesn't exist
-    if not os.path.exists(args.destination_path):
-        os.makedirs(args.destination_path)
-
-    # Copy files from source to destination
-    shutil.copytree(args.source_path, args.destination_path)
-
-    # Transfer files to remote server
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(args.destination_ip, username=args.destination_user)
-
-    sftp = ssh.open_sftp()
-    sftp.put(args.destination_path, args.destination_path)
-    sftp.close()
-
-    ssh.close()
+        
+        for item in config:
+            print(f'{item}')
+        
+ 
 
 if __name__ == '__main__':
     main()
