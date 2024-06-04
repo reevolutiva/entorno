@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import subprocess
 
 # Configuration for JWT
 SECRET_KEY = "your-secret-key"
@@ -21,7 +22,7 @@ fake_users_db = {
         "username": "johndoe",
         "full_name": "John Doe",
         "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+        "hashed_password": "$2a$12$nYxwJr3Ho3P5Rox87cZ3zeBAY4PQdXSdIzFSAV3MOHvnOg.H3Nw0a", # jeremias123
         "disabled": False,
     },
     "alice": {
@@ -81,6 +82,17 @@ async def mount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     try:
         while True:
             data = await websocket.receive_text()
+            app = "reev" #Specify the app name
+            domain = "jw.org" #Specify the domain"
+            email = "ti@reevolutiva.com" #Specify the email"
+            db_password = "your-db-password" #Specify the database password
+            db_user = "your-db-user" #Specify the database user
+            wp_user = "your-wp-user" #Specify the WordPress user
+            wp_password = "your-wp-password" #Specify the WordPress password
+            new_db_name = "your-new-db-name" #Specify the new database name
+            is_bedrock = "true" #Specify if it is a Bedrock app (true/false)
+            
+            subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
             await manager.send_personal_message(f"Mount operation completed: {data}", websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
