@@ -1,24 +1,36 @@
 #!/bin/bash
 
 # Check if all flags are provided
-if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 -s <source_path> -d <destination_path> -u <destination_user> -i <destination_ip>"
+if [ "$#" -ne 5 ]; then
+    echo "Usage: $0 -s <source_path> -d <destination_path> -u <destination_user> -i <destination_ip> -f <json_file>"
     echo "  -s, --source-path    Source path to transfer"
     echo "  -d, --destination-path Destination path to transfer to"
     echo "  -u, --destination-user Destination user"
     echo "  -i, --destination-ip   Destination IP address"
+    echo "  -f, --json-file      JSON file to read"
     exit 1
 fi
 
-while getopts ":s:d:u:i:" opt; do
+while getopts ":s:d:u:i:f:" opt; do
   case $opt in
     s) SOURCE_PATH="$OPTARG" ;;
     d) DESTINATION_PATH="$OPTARG" ;;
     u) DESTINATION_USER="$OPTARG" ;;
     i) DESTINATION_IP="$OPTARG" ;;
+    f) JSON_FILE="$OPTARG" ;;
     \?) echo "Invalid option -$OPTARG" >&2 ;;
   esac
 done
+
+# Read JSON file content
+if [ -f "$JSON_FILE" ]; then
+    JSON_CONTENT=$(cat "$JSON_FILE")
+    echo "JSON file content:"
+    echo "$JSON_CONTENT"
+else
+    echo "JSON file not found: $JSON_FILE"
+    exit 1
+fi
 
 # Print message before transferring
 echo "Transferring..."
