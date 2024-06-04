@@ -10,10 +10,10 @@
 # read -p "Enter remote user: " REMOTE_USER
 # read -p "Enter remote host: " REMOTE_HOST
 # read -p "Enter remote path: " REMOTE_PATH
-echo "uso: ./transfer.sh WORDPRESS_SITE WORDPRESS_SITE_PATH MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH"
+echo "uso: ./transfer.sh CONFIG_PATH WORDPRESS_SITE_PATH MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH"
 
 # Use command line arguments instead of prompts
-WORDPRESS_SITE=$1
+CONFIG_PATH=$1
 WORDPRESS_SITE_PATH=$2
 MYSQL_HOST=$3
 MYSQL_USER=$4
@@ -24,7 +24,7 @@ REMOTE_HOST=$8
 REMOTE_PATH=$9
 
 # Load variables from .env file if it exists
-if [ -f "$WORDPRESS_SITE_PATH/.env" ]; then
+if [ -f "$CONFIG_PATH/.env" ]; then
     export $(grep -v '^#' $WORDPRESS_SITE_PATH/.env | xargs)
 fi
 
