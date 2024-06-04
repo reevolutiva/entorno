@@ -10,7 +10,8 @@
 # read -p "Enter remote user: " REMOTE_USER
 # read -p "Enter remote host: " REMOTE_HOST
 # read -p "Enter remote path: " REMOTE_PATH
-echo "uso: ./transfer.sh WORDPRESS_SITE WORDPRESS_SITE_PATH MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH"
+# read -p "Enter demyx (bool or string): " DEMYX
+echo "uso: ./transfer.sh WORDPRESS_SITE WORDPRESS_SITE_PATH MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE REMOTE_USER REMOTE_HOST REMOTE_PATH DEMYX"
 
 # Use command line arguments instead of prompts
 WORDPRESS_SITE=$1
@@ -22,6 +23,27 @@ MYSQL_DATABASE=$6
 REMOTE_USER=$7
 REMOTE_HOST=$8
 REMOTE_PATH=$9
+DEMYX=${10}
+
+# Check if DEMYX is not false and search for the specified folders
+if [[ "$DEMYX" != "false" ]]; then
+    DEMYX_WP_FOLDER="${WORDPRESS_SITE_PATH}/${DEMYX}_wp"
+    DEMYX_DB_FOLDER="${WORDPRESS_SITE_PATH}/${DEMYX}_db"
+
+    if [ -d "$DEMYX_WP_FOLDER" ]; then
+        cd $DEMYX_WP_FOLDER
+        zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
+    else
+        echo "{$DEMYX}_wp folder not found."
+    fi
+
+    if [ -d "$DEMYX_DB_FOLDER" ]; then
+        cd $DEMYX_DB_FOLDER
+        zip -r $WORDPRESS_SITE_PATH$WORDPRESS_SITE.zip .
+    else
+        echo "{$DEMYX}_db folder not found."
+    fi
+fi
 
 # Extract the WordPress site from the server origin
 cd $WORDPRESS_SITE_PATH
