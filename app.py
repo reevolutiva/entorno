@@ -31,6 +31,13 @@ fake_users_db = {
         "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
         "disabled": True,
     },
+    "newuser": {
+        "username": "newuser",
+        "full_name": "New User",
+        "email": "newuser@example.com",
+        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+        "disabled": False,
+    },
 }
 
 # Create FastAPI app instance
