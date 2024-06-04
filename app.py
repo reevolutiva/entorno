@@ -1,6 +1,6 @@
 # Import necessary modules and classes
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import List
+from typing import List, Dict
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -77,23 +77,25 @@ manager = ConnectionManager()
 
 # Define a WebSocket endpoint for the mount operation
 @app.websocket("/mount")
-async def mount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
+async def mount(websocket: WebSocket, token: str = Depends(oauth2_scheme), data: Dict[str, str] = None):
     await manager.connect(websocket, token)
     try:
         while True:
-            data = await websocket.receive_text()
-            app = "reev" #Specify the app name
-            domain = "jw.org" #Specify the domain"
-            email = "ti@reevolutiva.com" #Specify the email"
-            db_password = "your-db-password" #Specify the database password
-            db_user = "your-db-user" #Specify the database user
-            wp_user = "your-wp-user" #Specify the WordPress user
-            wp_password = "your-wp-password" #Specify the WordPress password
-            new_db_name = "your-new-db-name" #Specify the new database name
-            is_bedrock = "true" #Specify if it is a Bedrock app (true/false)
-            
-            subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
-            await manager.send_personal_message(f"Mount operation completed: {data}", websocket)
+            if data is not None:
+                app = data.get("app", "reev") #Specify the app name
+                domain = data.get("domain", "jw.org") #Specify the domain
+                email = data.get("email", "ti@reevolutiva.com") #Specify the email
+                db_password = data.get("db_password", "your-db-password") #Specify the database password
+                db_user = data.get("db_user", "your-db-user") #Specify the database user
+                wp_user = data.get("wp_user", "your-wp-user") #Specify the WordPress user
+                wp_password = data.get("wp_password", "your-wp-password") #Specify the WordPress password
+                new_db_name = data.get("new_db_name", "your-new-db-name") #Specify the new database name
+                is_bedrock = data.get("is_bedrock", "true") #Specify if it is a Bedrock app (true/false)
+                
+                subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+                await manager.send_personal_message(f"Mount operation completed: {data}", websocket)
+            else:
+                await manager.send_personal_message("Invalid data format", websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
