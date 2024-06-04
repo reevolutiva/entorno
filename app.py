@@ -88,7 +88,6 @@ async def delete(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-
 # Define a POST endpoint for token authentication
 @app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -100,3 +99,15 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return {"access_token": user["username"], "token_type": "bearer"}
+
+# Define a GET endpoint for the hello operation
+@app.get("/hello")
+async def hello(token: str = Depends(oauth2_scheme)):
+    user = fake_users_db.get(token)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return {"message": f"Hello, {user['full_name']}"}
