@@ -139,7 +139,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 # Define a GET endpoint for the hello operation
 @app.get("/hello")
-async def hello(token: str = Depends(oauth2_scheme)):
+async def hello(token: str = Depends(oauth2_scheme), data : Dict[str, str] = None):
+    
+    print( "data" )
+    print( data )
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
