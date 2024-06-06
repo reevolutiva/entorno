@@ -134,7 +134,11 @@ async def unmount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_personal_message(f"Unmount operation completed: {data}", websocket)
+            user = user_validate(fake_users_db, data)
+            if user['status']:
+                await manager.send_personal_message(f"Unmount operation completed: {data}", websocket)
+            else:
+                await manager.send_personal_message("Invalid token", websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
