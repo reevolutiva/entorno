@@ -105,12 +105,20 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
     await websocket.accept()
     try:
         while True:
-            data = await websocket.receive_text()
-            user = user_validate(fake_users_db, data)
-            if user['status']:
-                await websocket.send_text(f"Unmount operation completed: {data}")
-            else:
-                await websocket.send_text("Invalid token")
+            data_raw = await websocket.receive_text()
+            user = user_validate( fake_users_db, data_raw  )                
+            data = user['data']
+            
+            domain = data.get("domain", "undefined") #Specify the source path
+            src = data.get("src", "undefined") #Specify the source path
+            src_vol = data.get("src_vol", "undefined")
+            
+            command = f"./reciber.sh --src {src} --src-vol {src_vol} --delete false"
+            
+            await websocket.send_text(f"Desmontando {domain}")
+                #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+            await websocket.send_text(f"Comando: {command}")
+            await websocket.send_text(f"Desmontado {domain}")
     except WebSocketDisconnect:
         pass
 
@@ -120,19 +128,21 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
     await websocket.accept()
     try:
         while True:
-            data = await websocket.receive_text()
-            data = json.loads(data)
-            print(data)
-            token = data['token']
+            data_raw = await websocket.receive_text()
+            user = user_validate( fake_users_db, data_raw  )                
+            data = user['data']
             
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            username: str = payload.get("sub")
+            domain = data.get("domain", "undefined") #Specify the source path
+            src = data.get("src", "undefined") #Specify the source path
+            src_vol = data.get("src_vol", "undefined")
             
-            user = fake_users_db.get(username)
+            command = f"./reciber.sh --src {src} --src-vol {src_vol} --delete true"
             
-            #print(user)
-            await websocket.send_text(f"Hola: {user['full_name']} tu email es: {user['email']}")
-            await websocket.send_text(f"Delete operation completed: {data}")
+            await websocket.send_text(f"Desmontando {domain}")
+            await websocket.send_text(f"Eliminando {domain}")
+                #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+            await websocket.send_text(f"Comando: {command}")
+            await websocket.send_text(f"Desmontado y elmiminado {domain}")
     except WebSocketDisconnect:
         pass
 
