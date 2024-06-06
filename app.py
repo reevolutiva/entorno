@@ -113,7 +113,7 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
             src = data.get("src", "undefined") #Specify the source path
             src_vol = data.get("src_vol", "undefined")
             
-            command = f"./reciber.sh --src {src} --src-vol {src_vol} --delete false"
+            command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
             
             await websocket.send_text(f"Desmontando {domain}")
                 #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
@@ -136,7 +136,7 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
             src = data.get("src", "undefined") #Specify the source path
             src_vol = data.get("src_vol", "undefined")
             
-            command = f"./reciber.sh --src {src} --src-vol {src_vol} --delete true"
+            command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete true"
             
             await websocket.send_text(f"Desmontando {domain}")
             await websocket.send_text(f"Eliminando {domain}")
