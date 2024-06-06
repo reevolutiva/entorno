@@ -4,6 +4,7 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         --src) src="$2"; shift ;;
         --src-vol) src_vol="$2"; shift ;;
+        --delete) delete="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
