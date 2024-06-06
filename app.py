@@ -67,7 +67,40 @@ def user_validate(user_db, data):
     
     return { "status": user , "data": data}
 
-# Define a WebSocket endpoint for the mount operation
+# Define a WebSocket endpoint for the create operation
+@app.websocket("/create")
+async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
+    await websocket.accept()
+    try:
+        while True:
+            if True:
+                data_raw = await websocket.receive_text()                
+                user = user_validate( fake_users_db, data_raw  )                
+                data = user['data']
+                                
+                app = data.get("app", "undefined") #Specify the app name
+                domain = data.get("domain", "undefined") #Specify the domain
+                email = data.get("email", "undefined") #Specify the email
+                db_password = data.get("db_password", "undefined") #Specify the database password
+                db_user = data.get("db_user", "undefined") #Specify the database user
+                wp_user = data.get("wp_user", "undefined") #Specify the WordPress user
+                wp_password = data.get("wp_password", "undefined") #Specify the WordPress password
+                new_db_name = data.get("new_db_name", "undefined") #Specify the new database name
+                is_bedrock = data.get("is_bedrock", "false") #Specify if it is a Bedrock app (true/false)
+                
+                command = f"./wp-create.sh --domain {domain} --app {app} --email {email} --db-password {db_password} --db-user {db_user} --wp-user {wp_user} --wp-password {wp_password} --db-name {new_db_name} --is-bedrock {is_bedrock}"
+                #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
+                await websocket.send_text(f"Montando {domain}")
+                subprocess.run( command , shell=True)
+                await websocket.send_text(f"Comando: {command}")
+                await websocket.send_text(f"Montado {domain}")
+            else:
+                await websocket.send_text("Invalid data format")
+    except WebSocketDisconnect as e:
+        print(f"WebSocket disconnected: {e}")
+
+
+# Define a WebSocket endpoint for the create mount
 @app.websocket("/mount")
 async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
     await websocket.accept()
@@ -116,7 +149,7 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
             command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
             
             await websocket.send_text(f"Desmontando {domain}")
-                #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+            subprocess.run( command , shell=True)
             await websocket.send_text(f"Comando: {command}")
             await websocket.send_text(f"Desmontado {domain}")
     except WebSocketDisconnect:
@@ -140,7 +173,7 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
             
             await websocket.send_text(f"Desmontando {domain}")
             await websocket.send_text(f"Eliminando {domain}")
-                #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+            subprocess.run( command , shell=True)
             await websocket.send_text(f"Comando: {command}")
             await websocket.send_text(f"Desmontado y elmiminado {domain}")
     except WebSocketDisconnect:
