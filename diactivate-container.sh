@@ -15,6 +15,9 @@ if [ -z "$src" ]; then
     exit 1
 fi
 
+# Set default value for delete to "false"
+delete=${delete:-"false"}
+
 # Check if docker-compose.yml exists in the provided src path
 if [ -f "$src/docker-compose.yml" ]; then
     # Change to the directory containing docker-compose.yml
