@@ -52,39 +52,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class TokenData(BaseModel):
     username: str = None
 
-# Define a class for managing WebSocket connections
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket, token: str = Depends(oauth2_scheme)):
-        try:
-            # Accept the WebSocket connection and add it to the list of active connections
-            await websocket.accept()
-            self.active_connections.append(websocket)
-        except Exception:
-            raise HTTPException("Invalid token")
-
-    def disconnect(self, websocket: WebSocket):
-        # Remove the WebSocket connection from the list of active connections
-        self.active_connections.remove(websocket)
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        # Send a personal message to the specified WebSocket connection
-        await websocket.send_text(message)
-
-# Create an instance of the ConnectionManager class
-manager = ConnectionManager()
-
-def user_validate( user_db, data ):
-    
+def user_validate(user_db, data):
     data = json.loads(data)
     token = data['token']
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:                
-        print(payload)
         return { "status": False , "data": data}
     
     username: str = payload.get("sub")
@@ -100,7 +74,6 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             if True:
-                
                 data_raw = await websocket.receive_text()                
                 user = user_validate( fake_users_db, data_raw  )                
                 data = user['data']
@@ -117,30 +90,29 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
                 
                 command = f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}"
                 
-                await manager.send_personal_message(f"Montabdo {domain}", websocket)
+                await websocket.send_text(f"Montando {domain}")
                 #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
-                await manager.send_personal_message(f"coomand: {command}", websocket)
-                await manager.send_personal_message(f"Montado {domain}", websocket)
+                await websocket.send_text(f"Comando: {command}")
+                await websocket.send_text(f"Montado {domain}")
             else:
-                await manager.send_personal_message("Invalid data format", websocket)
+                await websocket.send_text("Invalid data format")
     except WebSocketDisconnect as e:
         print(f"WebSocket disconnected: {e}")
-        manager.disconnect(websocket)
 
 # Define a WebSocket endpoint for the unmount operation
 @app.websocket("/unmount")
-async def unmount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
-    await manager.connect(websocket, token)
+async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
+    await websocket.accept()
     try:
         while True:
             data = await websocket.receive_text()
             user = user_validate(fake_users_db, data)
             if user['status']:
-                await manager.send_personal_message(f"Unmount operation completed: {data}", websocket)
+                await websocket.send_text(f"Unmount operation completed: {data}")
             else:
-                await manager.send_personal_message("Invalid token", websocket)
+                await websocket.send_text("Invalid token")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        pass
 
 # Define a WebSocket endpoint for the delete operation
 @app.websocket("/delete")
@@ -159,10 +131,10 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
             user = fake_users_db.get(username)
             
             #print(user)
-            await manager.send_personal_message(f"Hola: {user['full_name']} tu email es: {user['email']}", websocket)
-            await manager.send_personal_message(f"Delete operation completed: {data}", websocket)
+            await websocket.send_text(f"Hola: {user['full_name']} tu email es: {user['email']}")
+            await websocket.send_text(f"Delete operation completed: {data}")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        pass
 
 # Define a POST endpoint for token authentication
 @app.post("/token")
