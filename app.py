@@ -114,7 +114,7 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
                 domain = data.get("domain", "undefined") #Specify the source path
                 src_vol = data.get("src_vol", "undefined")
                 
-                command = f"./mount.sh --domain {domain} --src-vol {src_vol}"
+                command = f"./mount.sh {domain} {src_vol}"
                 #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
                 await websocket.send_text(f"Montando {domain}")
                 subprocess.run( command , shell=True)
