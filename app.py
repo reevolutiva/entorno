@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import subprocess
+import json
 
 # Configuration for JWT
 SECRET_KEY = "your-secret-key"
@@ -75,28 +76,55 @@ class ConnectionManager:
 # Create an instance of the ConnectionManager class
 manager = ConnectionManager()
 
+def user_validate( user_db, data ):
+    
+    data = json.loads(data)
+    token = data['token']
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:                
+        print(payload)
+        return { "status": False , "data": data}
+    
+    username: str = payload.get("sub")
+    
+    user = user_db.get(username, False)
+    
+    return { "status": user , "data": data}
+
 # Define a WebSocket endpoint for the mount operation
 @app.websocket("/mount")
-async def mount(websocket: WebSocket, token: str = Depends(oauth2_scheme), data: Dict[str, str] = None):
-    await manager.connect(websocket, token)
+async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
+    await websocket.accept()
     try:
         while True:
-            if data is not None:
-                app = data.get("app", "reev") #Specify the app name
-                domain = data.get("domain", "jw.org") #Specify the domain
-                email = data.get("email", "ti@reevolutiva.com") #Specify the email
-                db_password = data.get("db_password", "your-db-password") #Specify the database password
-                db_user = data.get("db_user", "your-db-user") #Specify the database user
-                wp_user = data.get("wp_user", "your-wp-user") #Specify the WordPress user
-                wp_password = data.get("wp_password", "your-wp-password") #Specify the WordPress password
-                new_db_name = data.get("new_db_name", "your-new-db-name") #Specify the new database name
-                is_bedrock = data.get("is_bedrock", "true") #Specify if it is a Bedrock app (true/false)
+            if True:
                 
-                subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
-                await manager.send_personal_message(f"Mount operation completed: {data}", websocket)
+                data_raw = await websocket.receive_text()                
+                user = user_validate( fake_users_db, data_raw  )                
+                data = user['data']
+                                
+                app = data.get("app", "undefined") #Specify the app name
+                domain = data.get("domain", "undefined") #Specify the domain
+                email = data.get("email", "undefined") #Specify the email
+                db_password = data.get("db_password", "undefined") #Specify the database password
+                db_user = data.get("db_user", "undefined") #Specify the database user
+                wp_user = data.get("wp_user", "undefined") #Specify the WordPress user
+                wp_password = data.get("wp_password", "undefined") #Specify the WordPress password
+                new_db_name = data.get("new_db_name", "undefined") #Specify the new database name
+                is_bedrock = data.get("is_bedrock", "false") #Specify if it is a Bedrock app (true/false)
+                
+                command = f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}"
+                
+                await manager.send_personal_message(f"Montabdo {domain}", websocket)
+                #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+                await manager.send_personal_message(f"coomand: {command}", websocket)
+                await manager.send_personal_message(f"Montado {domain}", websocket)
             else:
                 await manager.send_personal_message("Invalid data format", websocket)
-    except WebSocketDisconnect:
+    except WebSocketDisconnect as e:
+        print(f"WebSocket disconnected: {e}")
         manager.disconnect(websocket)
 
 # Define a WebSocket endpoint for the unmount operation
@@ -112,11 +140,22 @@ async def unmount(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
 
 # Define a WebSocket endpoint for the delete operation
 @app.websocket("/delete")
-async def delete(websocket: WebSocket, token: str = Depends(oauth2_scheme)):
-    await manager.connect(websocket, token)
+async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
+    await websocket.accept()
     try:
         while True:
             data = await websocket.receive_text()
+            data = json.loads(data)
+            print(data)
+            token = data['token']
+            
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("sub")
+            
+            user = fake_users_db.get(username)
+            
+            #print(user)
+            await manager.send_personal_message(f"Hola: {user['full_name']} tu email es: {user['email']}", websocket)
             await manager.send_personal_message(f"Delete operation completed: {data}", websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
