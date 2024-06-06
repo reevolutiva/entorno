@@ -88,10 +88,10 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
                 new_db_name = data.get("new_db_name", "undefined") #Specify the new database name
                 is_bedrock = data.get("is_bedrock", "false") #Specify if it is a Bedrock app (true/false)
                 
-                command = f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}"
-                
+                command = f"./wp-create.sh --domain {domain} --app {app} --email {email} --db-password {db_password} --db-user {db_user} --wp-user {wp_user} --wp-password {wp_password} --db-name {new_db_name} --is-bedrock {is_bedrock}"
+                #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
                 await websocket.send_text(f"Montando {domain}")
-                #subprocess.run(f"./reciber.sh -a {app} -d {domain} -e {email} -p {db_password} -u {db_user} -w {wp_user} -wp {wp_password} -n {new_db_name} -b {is_bedrock}")
+                subprocess.run( command , shell=True)
                 await websocket.send_text(f"Comando: {command}")
                 await websocket.send_text(f"Montado {domain}")
             else:
