@@ -90,10 +90,9 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
                 
                 command = f"./wp-create.sh --domain {domain} --app {app} --email {email} --db-password {db_password} --db-user {db_user} --wp-user {wp_user} --wp-password {wp_password} --db-name {new_db_name} --is-bedrock {is_bedrock}"
                 #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
-                await websocket.send_text(f"Montando {domain}")
-                subprocess.run( command , shell=True)
-                await websocket.send_text(f"Comando: {command}")
-                await websocket.send_text(f"Montado {domain}")
+                await websocket.send_json({ "msg": f"Creando {domain}" })
+                #subprocess.run( command , shell=True)
+                await websocket.send_json({ "msg": f"{domain} ha sido creado" })
             else:
                 await websocket.send_text("Invalid data format")
     except WebSocketDisconnect as e:
@@ -116,10 +115,10 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
                 
                 command = f"./mount.sh {domain} {src_vol}"
                 #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
-                await websocket.send_text(f"Montando {domain}")
-                subprocess.run( command , shell=True)
-                await websocket.send_text(f"Comando: {command}")
-                await websocket.send_text(f"Montado {domain}")
+     
+                await websocket.send_json({ "msg": f"Montando {domain}" })
+                #subprocess.run( command , shell=True)
+                await websocket.send_json({ "msg": f"{domain} Montado" })
             else:
                 await websocket.send_text("Invalid data format")
     except WebSocketDisconnect as e:
@@ -141,10 +140,9 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
             
             command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
             
-            await websocket.send_text(f"Desmontando {domain}")
-            subprocess.run( command , shell=True)
-            await websocket.send_text(f"Comando: {command}")
-            await websocket.send_text(f"Desmontado {domain}")
+            await websocket.send_json({ "msg": f"Desmontando {domain}" })
+            #subprocess.run( command , shell=True)
+            await websocket.send_json({ "msg": f"{domain} desmontado" })
     except WebSocketDisconnect:
         pass
 
@@ -164,11 +162,10 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
             
             command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete true"
             
-            await websocket.send_text(f"Desmontando {domain}")
-            await websocket.send_text(f"Eliminando {domain}")
-            subprocess.run( command , shell=True)
-            await websocket.send_text(f"Comando: {command}")
-            await websocket.send_text(f"Desmontado y elmiminado {domain}")
+            await websocket.send_json({ "msg": f"Desmontando {domain}" })
+            await websocket.send_json({ "msg": f"Eliminando {domain}" })
+            #subprocess.run( command , shell=True)
+            await websocket.send_json({ "msg": f"Desmontado y elmiminado {domain}" })
     except WebSocketDisconnect:
         pass
 
