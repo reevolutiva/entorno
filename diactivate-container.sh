@@ -25,17 +25,20 @@ if [ -f "$src/docker-compose.yml" ]; then
     docker compose down
     echo "Contenedor desactivado"
 
-    # Ask the user if they want to delete the volumes
-    read -p "¿Desea eliminar los volúmenes? (y/n): " response
-    if [ "$response" = "y" ]; then
-        # Remove the directory containing docker-compose.yml
-        rm -rf "$src"
-        echo "Carpeta eliminada $src"
+    # If delete is true, skip lines 29 to 40
+    if [ "$delete" != "true" ]; then
+        # Ask the user if they want to delete the volumes
+        read -p "¿Desea eliminar los volúmenes? (y/n): " response
+        if [ "$response" = "y" ]; then
+            # Remove the directory containing docker-compose.yml
+            rm -rf "$src"
+            echo "Carpeta eliminada $src"
 
-        # Check if --src-vol parameter is provided and user wants to delete it
-        if [ -n "$src_vol" ] && [ "$response" = "y" ]; then
-            rm -rf "$src_vol"
-            echo "Carpeta eliminada $src_vol"
+            # Check if --src-vol parameter is provided and user wants to delete it
+            if [ -n "$src_vol" ] && [ "$response" = "y" ]; then
+                rm -rf "$src_vol"
+                echo "Carpeta eliminada $src_vol"
+            fi
         fi
     fi
 else
