@@ -40,24 +40,9 @@ if [ -f "$src/docker-compose.yml" ]; then
                 rm -rf "$src_vol"
                 echo "Carpeta eliminada $src_vol"
             fi
-            
+
     fi
 
-    if [ "$delete" == "false" ]; then
-        # Ask the user if they want to delete the volumes
-        read -p "¿Desea eliminar los volúmenes? (y/n): " response
-        if [ "$response" = "y" ]; then
-            # Remove the directory containing docker-compose.yml
-            rm -rf "$src"
-            echo "Carpeta eliminada $src"
-
-            # Check if --src-vol parameter is provided and user wants to delete it
-            if [ -n "$src_vol" ] && [ "$response" = "y" ]; then
-                rm -rf "$src_vol"
-                echo "Carpeta eliminada $src_vol"
-            fi
-        fi
-    fi
 else
     echo "Error: No docker-compose.yml found in the provided path: $src"
     exit 1
