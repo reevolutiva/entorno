@@ -22,6 +22,15 @@ def copy_file_contents(origin, destiny):
 def run_docker_compose_up(path):
     subprocess.run(["docker", "compose", "up", "-d"], cwd=path)
     
+def replace_character_in_file(file_path, old_char, new_char):
+    with open(file_path, 'r') as file:
+        content = file.read()
+
+    content = content.replace(old_char, new_char)
+
+    with open(file_path, 'w') as file:
+        file.write(content)
+    
 
 #create_folder( "stage.kban.cl", "/home/hosting/", "/home/hosting/reevolutiva-net/");    
 # STEP 1: Creo los directorios para el stage.
@@ -35,11 +44,4 @@ def run_docker_compose_up(path):
 #STEP 3: Levanto el docker-compose
 # run_docker_compose_up("/home/hosting/reevolutiva-net/stage.<domain>/")
 
-def replace_character_in_file(file_path, old_char, new_char):
-    with open(file_path, 'r') as file:
-        content = file.read()
 
-    content = content.replace(old_char, new_char)
-
-    with open(file_path, 'w') as file:
-        file.write(content)

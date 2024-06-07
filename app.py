@@ -10,7 +10,7 @@ import subprocess
 import json
 import os
 from file_mannager import list_directories, read_env_file
-from stage import create_folder, copy_directory_contents, run_docker_compose_up, copy_file_contents
+from stage import create_folder, copy_directory_contents, run_docker_compose_up, copy_file_contents, replace_character_in_file
 
 
 # Configuration for JWT
@@ -88,23 +88,28 @@ async def app_clone(websocket: WebSocket, data: Dict[str, str] = None ):
                 compose_path = "/home/hosting/reevolutiva-net/"
                 
                 # STEP 1: Creo los directorios para el stage.
-                #create_folder( stage_domain, "/home/hosting/", compose_path )
+                create_folder( stage_domain, "/home/hosting/", compose_path )
                 
                 await websocket.send_json({ "msg": f"Preparandoce para clonar {origin_domain}" })
 
                 #STEP 2: Copio el contenido de la carpeta original a la carpeta stage.domain.tld
-                #copy_directory_contents(f"{compose_path}{origin_domain}/", f"{compose_path}{stage_domain}/")
-                #copy_file_contents(f"{compose_path}{origin_domain}/docker-compose.yml", f"{compose_path}{stage_domain}/docker-compose.yml")
-                #copy_file_contents(f"{compose_path}{origin_domain}/.env", f"{compose_path}{stage_domain}/.env")
-                #copy_directory_contents(f"/home/hosting/{origin_domain}/", f"/home/hosting/{stage_domain}/" )
+                copy_directory_contents(f"{compose_path}{origin_domain}/", f"{compose_path}{stage_domain}/")
+                copy_file_contents(f"{compose_path}{origin_domain}/docker-compose.yml", f"{compose_path}{stage_domain}/docker-compose.yml")
+                copy_file_contents(f"{compose_path}{origin_domain}/.env", f"{compose_path}{stage_domain}/.env")
+                copy_directory_contents(f"/home/hosting/{origin_domain}/", f"/home/hosting/{stage_domain}/" )
+                replace_character_in_file( f"{compose_path}{stage_domain}/.env", origin_domain, stage_domain )
+                replace_character_in_file( f"{compose_path}{stage_domain}/docker-compose.yml", origin_domain, stage_domain )
+                replace_character_in_file( f"{compose_path}{stage_domain}/docker-compose.yml", '${DEMYX_APP_COMPOSE_PROJECT}' , stage_domain )
                 
                 await websocket.send_json({ "msg": f"Cargando configuraciones de {stage_domain}" })
 
 
                 #STEP 3: Levanto el docker-compose
-                # run_docker_compose_up(f"{compose_path}{stage_domain}/")
+                run_docker_compose_up(f"{compose_path}{stage_domain}/")
                 
                 await websocket.send_json({ "msg": f"{stage_domain} Levantado" })
+                
+                await websocket.send_json({ "action": 'create-clone' , "data": data })
                 
     except WebSocketDisconnect as e:
         print(f"WebSocket disconnected: {e}")
