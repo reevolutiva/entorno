@@ -10,6 +10,7 @@ import subprocess
 import json
 import os
 from file_mannager import list_directories, read_env_file
+from stage import create_folder, copy_directory_contents, run_docker_compose_up
 
 
 # Configuration for JWT
@@ -69,6 +70,42 @@ def user_validate(user_db, data):
     user = user_db.get(username, False)
     
     return { "status": user , "data": data}
+
+
+@app.websocket("/app-clone")
+async def app_clone(websocket: WebSocket, data: Dict[str, str] = None ):
+    await websocket.accept()
+    try:
+        while True:
+            if True:
+                data_raw = await websocket.receive_text()                
+                user = user_validate( fake_users_db, data_raw  )                
+                data = user['data']
+                
+                origin_domain = data.get("origin_domain", "undefined")  #Specify the domain
+                stage_domain = data.get("stage_domain", "undefined")  #Specify the domain
+                
+                compose_path = "/home/hosting/reevolutiva-net/"
+                
+                # STEP 1: Creo los directorios para el stage.
+                # create_folder( stage_domain, "/home/hosting/", compose_path )
+                
+                await websocket.send_json({ "msg": f"Preparandoce para clonar {origin_domain}" })
+
+                #STEP 2: Copio el contenido de la carpeta original a la carpeta stage.domain.tld
+                # copy_directory_contents("/home/hosting/reevolutiva-net/origin_domain/", f"{compose_path}stage_domain/")
+                # copy_directory_contents("/home/hosting/origin_domain/", f"{compose_path}{stage_domain}/" )
+                
+                await websocket.send_json({ "msg": f"Cargando configuraciones de {stage_domain}" })
+
+
+                #STEP 3: Levanto el docker-compose
+                # run_docker_compose_up(f"{compose_path}{stage_domain}/")
+                
+                await websocket.send_json({ "msg": f"{stage_domain} Levantado" })
+                
+    except WebSocketDisconnect as e:
+        print(f"WebSocket disconnected: {e}")
 
 # Define a WebSocket endpoint for the create operation
 @app.websocket("/create")
