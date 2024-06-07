@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 def create_folder(domain, src, src_vol):
     src_path = os.path.join(src, domain)
@@ -11,3 +12,7 @@ def create_folder(domain, src, src_vol):
 
 def copy_directory_contents(origin, destiny):
     shutil.copytree(origin, destiny)
+
+
+def run_docker_compose_up(path):
+    subprocess.run(["docker", "compose", "up", "-d"], cwd=path)
