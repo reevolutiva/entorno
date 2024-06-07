@@ -34,3 +34,12 @@ def run_docker_compose_up(path):
 
 #STEP 3: Levanto el docker-compose
 # run_docker_compose_up("/home/hosting/reevolutiva-net/stage.<domain>/")
+
+def replace_character_in_file(file_path, old_char, new_char):
+    with open(file_path, 'r') as file:
+        content = file.read()
+
+    content = content.replace(old_char, new_char)
+
+    with open(file_path, 'w') as file:
+        file.write(content)
