@@ -11,12 +11,19 @@ def create_folder(domain, src, src_vol):
 
 
 def copy_directory_contents(origin, destiny):
-    shutil.copytree(origin, destiny)
+    command = f"cp -r {origin}* {destiny}"
+    subprocess.run(command, shell=True)
+    
+def copy_file_contents(origin, destiny):
+    command = f"cp {origin} {destiny}"
+    subprocess.run(command, shell=True)
 
 
 def run_docker_compose_up(path):
     subprocess.run(["docker", "compose", "up", "-d"], cwd=path)
     
+
+#create_folder( "stage.kban.cl", "/home/hosting/", "/home/hosting/reevolutiva-net/");    
 # STEP 1: Creo los directorios para el stage.
 # create_folder("stage.domain.tld", "/home/hosting/<domain>", "/home/hosting/reevolutiva-net/<domain>/")
 
