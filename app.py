@@ -220,7 +220,7 @@ async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] =
         )
     
 # Define a GET endpoint for the hello operation
-@app.get("/site-config")
+@app.post("/site-config")
 async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] = None):
     
     try:
