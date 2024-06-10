@@ -11,6 +11,7 @@ import json
 import os
 from file_mannager import list_directories, read_env_file
 from stage import create_folder, copy_directory_contents, run_docker_compose_up, copy_file_contents, replace_character_in_file
+from docker_config_mod import buscar_archivo_env
 
 
 # Configuration for JWT
@@ -286,8 +287,47 @@ async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] =
             
         site = data.get("site", "undefined")
         site_path = data.get("site_path", "undefined")
+    
+        return {"site": site, "env_list": read_env_file( site_path ) }
+    
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         
-        read_env_file( site_path )    
+        
+# Define a put endpoint for the hello operation
+@app.put("/site-config")
+async def site_list(token: str = Depends(oauth2_scheme), data : Dict = None):
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        user = fake_users_db.get(username)
+        if user is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        site = data.get("site", "undefined")
+        site_path = data.get("site_path", "undefined")
+        vars_to_chage = data.get("vars_to_chage", "undefined")
+    
+        for var in vars_to_chage:        
+            key = var['key']
+            value = var['value']
+            buscar_archivo_env( site_path, var["key"] , var["value"] )    
+     
         return {"site": site, "env_list": read_env_file( site_path ) }
     
     except JWTError:
