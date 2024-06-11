@@ -62,24 +62,18 @@ cd $WORDPRESS_SITE_PATH
 #zip -r $WORDPRESS_SITE_PATH.zip .
 
 if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
-
     echo "site"
     echo $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
-
     # WordPress site is Bedrock
     cd $WORDPRESS_SITE_PATH/web
     zip -r $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip .
-
     # Extract the BDD from the WordPress site
     mysqldump -u$MYSQL_USER -p$MARIADB_ROOT_PASSWORD $MYSQL_DATABASE > $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql
-
-    #Transfer the .zip and .sql files to the destination server
+    # Transfer the .zip and .sql files to the destination server
     rsync -a -e ssh $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
-
     rsync -a -e ssh $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.sql $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
-fi
+else
 
-if [ -d "$WORDPRESS_SITE_PATH/web" ]; then
     cd $WORDPRESS_SITE_PATH/wp-content/
     # WordPress site is Vanilla
     zip -r $WORDPRESS_SITE_PATH$DEMYX_APP_DOMAIN.zip .

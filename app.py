@@ -322,13 +322,17 @@ async def site_list(token: str = Depends(oauth2_scheme), data : Dict = None):
         site = data.get("site", "undefined")
         site_path = data.get("site_path", "undefined")
         vars_to_chage = data.get("vars_to_chage", "undefined")
+        
+        print("vars_to_chage")
+        print(data)
+        return data
     
         for var in vars_to_chage:        
             key = var['key']
             value = var['value']
-            buscar_archivo_env( site_path, var["key"] , var["value"] )    
+            #buscar_archivo_env( site_path, var["key"] , var["value"] )    
      
-        return {"site": site, "env_list": read_env_file( site_path ) }
+        #return {"site": site, "env_list": vars_to_chage }
     
     except JWTError:
         raise HTTPException(
