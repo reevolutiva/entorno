@@ -4,7 +4,7 @@ Este proyecto es un contenedor de Docker que contiene un servidor de Wordpress y
 ## Setup
 1. Build the Image
 ```docker build -t wpnode .```
-2. Replace the .env file and docker-compose with the correct values
+2. Reemplaza el fichero .env y docker-compose con los valroes correctos
     El docker-compose.yml tiene que tener el nombre de la imagen que se construyó en el paso anterior.
     El docker compose lleva las configuraciones para levantarlo en una red de trafik, pero esas configuraciones estan desactivadas.
 3. Run the containers
