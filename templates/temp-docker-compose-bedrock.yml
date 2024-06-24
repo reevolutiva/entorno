@@ -5,12 +5,11 @@ version: '3.2'
 networks:
   reevolutiva_net:
     external: true
-  #  name: reevolutiva_net
 
 services:
 
   db_<my_app>:
-    #cpus: ${DEMYX_APP_DB_CPU}
+    cpus: ${DEMYX_APP_DB_CPU}
     environment:
       - DEMYX_DOMAIN=${DEMYX_APP_DOMAIN}
       - MARIADB_CHARACTER_SET_SERVER=${MARIADB_CHARACTER_SET_SERVER}
@@ -42,7 +41,7 @@ services:
       - MARIADB_WRITE_BUFFER=${MARIADB_WRITE_BUFFER}
       - TZ=America/Santiago
     image: demyx/mariadb
-    #mem_limit: ${DEMYX_APP_DB_MEM}
+    mem_limit: ${DEMYX_APP_DB_MEM}
     networks:
       - reevolutiva_net
     restart: unless-stopped
@@ -50,9 +49,8 @@ services:
       - /home/hosting/<my_domain>/db:/demyx
       - /home/hosting/<my_domain>/log/:/var/log/demyx
   wp_<my_app>:
-    #cpus: ${DEMYX_APP_WP_CPU}
-    #ports:
-    #  - 8686:80
+    cpus: ${DEMYX_APP_WP_CPU}
+    
     depends_on:
       - db_${DEMYX_APP_ID}
     environment:
@@ -120,10 +118,6 @@ services:
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.service=${DEMYX_APP_COMPOSE_PROJECT}-http-port"
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.priority=10"
       - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-http-port.loadbalancer.server.port=80"
-      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.middlewares=${DEMYX_APP_COMPOSE_PROJECT}-redirect"
-      # - "traefik.http.middlewares.${DEMYX_APP_COMPOSE_PROJECT}-redirect.redirectregex.regex=^https?:\\/\\/(?:www\\.)?(.+)"
-      # - "traefik.http.middlewares.${DEMYX_APP_COMPOSE_PROJECT}-redirect.redirectregex.replacement=https://$${1}"
-      # - "traefik.http.middlewares.${DEMYX_APP_COMPOSE_PROJECT}-redirect.redirectregex.permanent=true"
       
       
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.rule=Host(`${DEMYX_APP_DOMAIN}`)"
@@ -134,9 +128,8 @@ services:
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.priority=10"
       - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-https-port.loadbalancer.server.port=80"
       - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.domains[0].main=${DEMYX_APP_DOMAIN}"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.domains[0].sans=*.${DEMYX_APP_DOMAIN}"
       
-    #mem_limit: ${DEMYX_APP_WP_MEM}
+    mem_limit: ${DEMYX_APP_WP_MEM}
     networks:
       - reevolutiva_net
     restart: unless-stopped

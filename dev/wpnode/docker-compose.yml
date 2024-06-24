@@ -1,14 +1,10 @@
-# volumen de reevolutiva.com /home/reevolutiva.com/html/
-
-version: '3.2'
-
-networks:
-  reevolutiva_net:
-    external: true
+# networks:
+#   reevolutiva_net:
+#     external: true
 
 services:
-
-  db_<my_app>:
+  
+  db_devpm:
     cpus: ${DEMYX_APP_DB_CPU}
     environment:
       - DEMYX_DOMAIN=${DEMYX_APP_DOMAIN}
@@ -46,10 +42,12 @@ services:
       - reevolutiva_net
     restart: unless-stopped
     volumes:
-      - /home/hosting/<my_domain>/db:/demyx
-      - /home/hosting/<my_domain>/log/:/var/log/demyx
-  wp_<my_app>:
-    cpus: ${DEMYX_APP_WP_CPU}
+      - /home/hosting/wpdev/db/:/demyx
+      - /home/hosting/wpdev/log/:/var/log/demyx
+  wp_devpm:
+    #cpus: ${DEMYX_APP_WP_CPU}
+    ports:
+      - 5173:5173
     depends_on:
       - db_${DEMYX_APP_ID}
     environment:
@@ -108,32 +106,42 @@ services:
       - TZ=America/Santiago
       
     hostname: ${DEMYX_APP_COMPOSE_PROJECT}
-    image: demyx/openlitespeed
+    image: wpnode
     labels:
       - "traefik.enable=true"
       
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.rule=Host(`${DEMYX_APP_DOMAIN}`)"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.entrypoints=http"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.service=${DEMYX_APP_COMPOSE_PROJECT}-http-port"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.priority=10"
-      - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-http-port.loadbalancer.server.port=80"
+      # HTTP
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.rule=Host(`${DEMYX_APP_DOMAIN}`)"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.entrypoints=http"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.service=${DEMYX_APP_COMPOSE_PROJECT}-http-port"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-http.priority=10"
+      # - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-http-port.loadbalancer.server.port=80"
+      
+      # HTTPS
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.rule=Host(`${DEMYX_APP_DOMAIN}`)"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.entrypoints=https"
+      # - traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls=true
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.certresolver=reevolutivaresolver"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.service=${DEMYX_APP_COMPOSE_PROJECT}-https-port"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.priority=10"
+      # - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-https-port.loadbalancer.server.port=80"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.domains[0].main=${DEMYX_APP_DOMAIN}"
 
+      # # HTTPS Router for Port 5173
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https-dev.rule=Host(`${DEMYX_APP_DOMAIN}`) && PathPrefix(`/dev`)"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https-dev.entrypoints=https"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https-dev.tls=true"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https-dev.tls.certresolver=reevolutivaresolver"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https-dev.service=${DEMYX_APP_COMPOSE_PROJECT}-https-dev-port"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https-dev.priority=20"
+      # - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-https-dev-port.loadbalancer.server.port=5173"
+      # - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.domains[0].main=${DEMYX_APP_DOMAIN}"
       
-      
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.rule=Host(`${DEMYX_APP_DOMAIN}`)"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.entrypoints=https"
-      - traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls=true
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.certresolver=reevolutivaresolver"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.service=${DEMYX_APP_COMPOSE_PROJECT}-https-port"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.priority=10"
-      - "traefik.http.services.${DEMYX_APP_COMPOSE_PROJECT}-https-port.loadbalancer.server.port=80"
-      - "traefik.http.routers.${DEMYX_APP_COMPOSE_PROJECT}-https.tls.domains[0].main=${DEMYX_APP_DOMAIN}"
-      
-    mem_limit: ${DEMYX_APP_WP_MEM}
+    #mem_limit: ${DEMYX_APP_WP_MEM}
     networks:
       - reevolutiva_net
     restart: unless-stopped
     volumes:
-      - /home/hosting/<my_domain>/wp/:/demyx
-      - /home/hosting/<my_domain>/custom/:/etc/demyx/custom
-      - /home/hosting/<my_domain>/log/:/var/log/demyx
+      - /home/hosting/wpdev/wp/:/demyx
+      - /home/hosting/wpdev/custom/:/etc/demyx/custom
+      - /home/hosting/wpdev/log/:/var/log/demyx
