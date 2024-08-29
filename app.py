@@ -12,10 +12,11 @@ import os
 from file_mannager import list_directories, read_env_file
 from stage import create_folder, copy_directory_contents, run_docker_compose_up, copy_file_contents, replace_character_in_file
 from docker_config_mod import buscar_archivo_env
+import docker
 
 
 # Configuration for JWT
-SECRET_KEY = "your-secret-key"
+SECRET_KEY = "hFa8u29!)kT2r387l?"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -351,3 +352,53 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+    # Define a GET endpoint for the site status operation
+@app.get("/site-status/{domain}")
+async def site_status(domain: str, token: str = Depends(oauth2_scheme) ):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("sub")
+            if username is None:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid token",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            user = fake_users_db.get(username)
+            if user is None:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid token",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+                
+            client = docker.from_env()
+            containers = client.containers.list()
+    
+            active_containers = []
+            for container in containers:
+                
+                config_file = container.labels["com.docker.compose.project.config_files"]
+                service = container.labels["com.docker.compose.service"]
+                
+                #print( container.labels )
+                
+                active_containers.append({ 
+                    "name": container.name, 
+                    "status": container.status, 
+                    "id": container.id,
+                    "docker-compose" : config_file,
+                    "service": service,
+                })
+                    
+            return {"active_containers": active_containers }
+                
+           
+            
+        except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
