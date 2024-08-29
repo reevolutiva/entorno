@@ -13,6 +13,7 @@ from file_mannager import list_directories, read_env_file
 from stage import create_folder, copy_directory_contents, run_docker_compose_up, copy_file_contents, replace_character_in_file
 from docker_config_mod import buscar_archivo_env
 import docker
+import psutil
 
 
 # Configuration for JWT
@@ -402,3 +403,20 @@ async def site_status(domain: str, token: str = Depends(oauth2_scheme) ):
                 detail="Invalid token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
+
+@app.get("/server-system")
+async def server_system():
+    
+    # Uso del CPU
+    cpu_usage = psutil.cpu_percent()
+    # Uso de la memoria
+    memory_usage = psutil.virtual_memory().percent
+    # Uso del disco
+    disk_usage = psutil.disk_usage("/").percent
+                
+    return {
+        "cpu_usage": cpu_usage,
+        "memory_usage": memory_usage,
+        "disk_usage": disk_usage
+    }

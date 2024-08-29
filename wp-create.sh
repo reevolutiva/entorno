@@ -12,7 +12,6 @@ YOUR_DB_USER=""
 YOUR_WP_USER=""
 YOUR_WP_PASSWORD=""
 NEW_DB_NAME=""
-REMOTE_PATH=""
 IS_BEDROCK="false"
 
 # Parse command line arguments
