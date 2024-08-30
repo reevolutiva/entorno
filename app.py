@@ -14,6 +14,7 @@ from stage import create_folder, copy_directory_contents, run_docker_compose_up,
 from docker_config_mod import buscar_archivo_env
 import docker
 import psutil
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # Configuration for JWT
@@ -51,6 +52,15 @@ fake_users_db = {
 
 # Create FastAPI app instance
 app = FastAPI()
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Set up OAuth2 password bearer for token-based authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -355,8 +365,9 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
     # Define a GET endpoint for the site status operation
-@app.get("/site-status/{domain}")
-async def site_status(domain: str, token: str = Depends(oauth2_scheme) ):
+@app.get("/site-status")
+async def site_status( token: str = Depends(oauth2_scheme) ):
+    
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             username: str = payload.get("sub")
