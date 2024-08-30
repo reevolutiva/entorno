@@ -1,6 +1,6 @@
 # Import necessary modules and classes
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import List, Dict
+from typing import List, Dict, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -15,6 +15,7 @@ from docker_config_mod import buscar_archivo_env
 import docker
 import psutil
 from fastapi.middleware.cors import CORSMiddleware
+import requests
 
 
 # Configuration for JWT
@@ -431,3 +432,55 @@ async def server_system():
         "memory_usage": memory_usage,
         "disk_usage": disk_usage
     }
+    
+# Define a POST endpoint for receiving transfer data
+@app.post("/transfer-receive")
+async def transfer_receive(file: Annotated[bytes | None, File()] = None, filename : str, domain : str ): :
+        
+   if not file:
+        return {"msg": "No file received"}
+    
+    # Create a new zip file
+    with open(f"/home/hosting/{domain}/{filename}.zip", "wb") as f:
+        f.write(file)
+        
+    # Provide a response to indicate that the zip file has been created
+    return {"msg": "New file.zip created"}
+
+# Define a WebSocket endpoint for the transfer operation
+@app.websocket("/transfer")
+async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
+        await websocket.accept()
+        try:
+            while True:
+                if True:
+                    data_raw = await websocket.receive_text()
+                    user = user_validate(fake_users_db, data_raw)
+                    data = user['data']
+                    
+                    #print( data )
+
+                    # Extract necessary data from the request
+                    domain = data.get("domain", "undefined")  # Specify the domain
+                    destiny_ip = data.get("destiny_ip" , "undefined")  # Specify the destiny IP
+                    destiny_port = data.get("destiny_port", "undefined")  # Specify the destiny port,
+                    docker_vols = data.get("docker_vols", "undefined")  # Specify the docker volumes
+                    docker_route = data.get("docker_route", "undefined")  # Specify the docker route
+                    
+                    env_list = read_env_file( f"{docker_route}/.env" )                   
+
+                    # TODO: Implement the transfer logic here
+                    command = f"./transfer.sh {domain}" 
+                    
+                    subprocess.run( command , shell=True)
+                    
+                    
+                    
+                    
+                    
+                    await websocket.send_json({"msg": f"Transfer completed from {domain} to {destiny_ip}"})
+
+                else:
+                    await websocket.send_text("Invalid data format")
+        except WebSocketDisconnect as e:
+            print(f"WebSocket disconnected: {e}")
