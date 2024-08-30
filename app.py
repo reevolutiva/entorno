@@ -439,10 +439,12 @@ async def transfer_receive( file: Annotated[bytes | None, File() ] = None, filen
     if not file:
         return {"msg": "No file received"}
     
+    file_path = f"/home/hosting/{domain}/{filename}.zip"
     # Create a new zip file
-    with open(f"/home/hosting/{domain}/{filename}.zip", "wb") as f:
+    with open(file_path, "wb") as f:
         f.write(file)
         
+    
     # Provide a response to indicate that the zip file has been created
     return {"msg": "New file.zip created"}
 
@@ -473,10 +475,12 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
                     
                     subprocess.run( command , shell=True)
                     
-                    
-                    
-                    
-                    
+                    request.post( 
+                                 f"http://{destiny_ip}:{destiny_port}/transfer-receive", 
+                                 files={"file": open(f"/home/hosting/{domain}.zip", "rb")}, 
+                                 data={"filename": domain, "domain": domain}
+                            )
+
                     await websocket.send_json({"msg": f"Transfer completed from {domain} to {destiny_ip}"})
 
                 else:
