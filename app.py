@@ -1,6 +1,6 @@
 # Import necessary modules and classes
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import List, Dict, File
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, File
+from typing import List, Dict, Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -16,7 +16,6 @@ import docker
 import psutil
 from fastapi.middleware.cors import CORSMiddleware
 import requests
-
 
 # Configuration for JWT
 SECRET_KEY = "hFa8u29!)kT2r387l?"
@@ -435,9 +434,9 @@ async def server_system():
     
 # Define a POST endpoint for receiving transfer data
 @app.post("/transfer-receive")
-async def transfer_receive(file: Annotated[bytes | None, File()] = None, filename : str, domain : str ): :
+async def transfer_receive( file: Annotated[bytes | None, File() ] = None, filename : str = None, domain : str = None ) :
         
-   if not file:
+    if not file:
         return {"msg": "No file received"}
     
     # Create a new zip file
