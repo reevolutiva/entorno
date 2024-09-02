@@ -16,6 +16,7 @@ import docker
 import psutil
 from fastapi.middleware.cors import CORSMiddleware
 import requests
+import zipfile
 
 # Configuration for JWT
 SECRET_KEY = "hFa8u29!)kT2r387l?"
@@ -502,3 +503,22 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
                     await websocket.send_text("Invalid data format")
         except WebSocketDisconnect as e:
             print(f"WebSocket disconnected: {e}")
+            
+
+# Define a POST endpoint for site installation
+@app.post("/site-install")
+async def site_install(data: Dict[str, str] = None):
+    
+    # Extract necessary data from the request
+    domain = data.get("domain", "undefined")
+    vol_name = data.get("vol_name", "undefined")
+    path_unzip = f"recive/{domain}/"
+    
+    # Unzip the files   
+    def unzip_file(zip_path, extract_path):
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_path)
+
+    unzip_file(f"{path_unzip}{domain}.zip", f"recive/{domain}/{vol_name}")
+    
+    return { "msg": f"Site {domain} installed" }
