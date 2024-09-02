@@ -1,0 +1,5 @@
+name: reev-host
+channels:
+  - defaults
+dependencies:
+  - python=3.10.12

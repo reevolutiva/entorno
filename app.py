@@ -1,6 +1,6 @@
 # Import necessary modules and classes
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, File, UploadFile
-from typing import List, Dict, Annotated
+from typing import List, Dict
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta
