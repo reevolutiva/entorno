@@ -434,16 +434,25 @@ async def server_system():
     
 # Define a POST endpoint for receiving transfer data
 @app.post("/transfer-receive")
-async def transfer_receive(file: UploadFile = File(...)):
+async def transfer_receive(site: str, filename: str, file: UploadFile = File(...)):
     # Leer el contenido del archivo
     contents = await file.read()
     
+    if not os.path.exists('recive/'):
+        os.makedirs('recive/')
+    
+    path = f"recive/{site}/"
+    
+    # Crear el directorio si no existe
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
     # Procesar el archivo (por ejemplo, guardarlo en el sistema de archivos)
-    with open("received_file.zip", "wb") as f:
+    with open( f"{path}/{filename}", "wb") as f:
         f.write(contents)
     
-    # Proporcionar una respuesta para indicar que el archivo zip ha sido creado
-    return {"msg": "New file.zip created"}
+    # Proporcionar una respuesta para indicar que el archivo ha sido creado
+    return {"msg": f"New {filename} created in {path}"}
 
 # Define a WebSocket endpoint for the transfer operation
 @app.websocket("/transfer")
