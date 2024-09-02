@@ -1,4 +1,7 @@
-# Instalamos las dependencias del proyecto
-pip install -r requeriments.txt
+# Obtenemos la ruta raíz del usuario actual
+USER_HOME=$HOME
 
-/home/jerexxypunto/miniconda/envs/reev-host/bin/uvicorn app:app --reload
+# Instalamos las dependencias del proyecto
+pip install -r $USER_HOME/reev-host/entorno/requeriments.txt
+
+$USER_HOME/miniconda/envs/reev-host/bin/uvicorn app:app --reload
