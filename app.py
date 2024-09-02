@@ -1,5 +1,5 @@
 # Import necessary modules and classes
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, File
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, File, UploadFile
 from typing import List, Dict, Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -434,18 +434,15 @@ async def server_system():
     
 # Define a POST endpoint for receiving transfer data
 @app.post("/transfer-receive")
-async def transfer_receive( file: Annotated[bytes | None, File() ] = None, filename : str = None, domain : str = None ) :
-        
-    if not file:
-        return {"msg": "No file received"}
+async def transfer_receive(file: UploadFile = File(...)):
+    # Leer el contenido del archivo
+    contents = await file.read()
     
-    file_path = f"/home/hosting/{domain}/{filename}.zip"
-    # Create a new zip file
-    with open(file_path, "wb") as f:
-        f.write(file)
-        
+    # Procesar el archivo (por ejemplo, guardarlo en el sistema de archivos)
+    with open("received_file.zip", "wb") as f:
+        f.write(contents)
     
-    # Provide a response to indicate that the zip file has been created
+    # Proporcionar una respuesta para indicar que el archivo zip ha sido creado
     return {"msg": "New file.zip created"}
 
 # Define a WebSocket endpoint for the transfer operation
@@ -475,11 +472,20 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
                     
                     subprocess.run( command , shell=True)
                     
-                    request.post( 
-                                 f"http://{destiny_ip}:{destiny_port}/transfer-receive", 
-                                 files={"file": open(f"/home/hosting/{domain}.zip", "rb")}, 
-                                 data={"filename": domain, "domain": domain}
-                            )
+                    requests.post( 
+                        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={domain}-conf", 
+                        files={"file": open(f"/home/hosting/trasnfer/{domain}/{domain}-conf.zip", "rb")} 
+                    )
+                    
+                    requests.post( 
+                        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={domain}-db", 
+                        files={"file": open(f"/home/hosting/trasnfer/{domain}/{domain}-db.zip", "rb")} 
+                    )
+                    
+                    requests.post( 
+                        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={domain}-wp", 
+                        files={"file": open(f"/home/hosting/trasnfer/{domain}/{domain}-wp.zip", "rb")} 
+                    )
 
                     await websocket.send_json({"msg": f"Transfer completed from {domain} to {destiny_ip}"})
 
