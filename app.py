@@ -1,6 +1,6 @@
 # Import necessary modules and classes
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, File, UploadFile
-from typing import List, Dict, Annotated
+from typing import List, Dict
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -16,6 +16,7 @@ import docker
 import psutil
 from fastapi.middleware.cors import CORSMiddleware
 import requests
+import zipfile
 
 # Configuration for JWT
 SECRET_KEY = "hFa8u29!)kT2r387l?"
@@ -69,20 +70,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class TokenData(BaseModel):
     username: str = None
 
-def user_validate(user_db, data):
-    data = json.loads(data)
-    token = data['token']
-    
+import requests
+
+def user_validate(username, password):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:                
-        return { "status": False , "data": data}
-    
-    username: str = payload.get("sub")
-    
-    user = user_db.get(username, False)
-    
-    return { "status": user , "data": data}
+        response = requests.post("http://reevolutivahost.local/wp-json/reev-host/v1/login", data={"username": username, "password": password})
+        response_data = response.json()
+    except requests.exceptions.RequestException as e:
+        return {"status": False, "error": str(e)}
+
+    if 'error' in response_data:
+        return {"status": False, "data": response_data}
+
+    return {"status": True, "data": response_data}
+
+re = user_validate( "admin", "admin" )
+print( re )
 
 
 @app.websocket("/app-clone")
@@ -434,16 +437,25 @@ async def server_system():
     
 # Define a POST endpoint for receiving transfer data
 @app.post("/transfer-receive")
-async def transfer_receive(file: UploadFile = File(...)):
+async def transfer_receive(site: str, filename: str, file: UploadFile = File(...)):
     # Leer el contenido del archivo
     contents = await file.read()
     
+    if not os.path.exists('recive/'):
+        os.makedirs('recive/')
+    
+    path = f"recive/{site}/"
+    
+    # Crear el directorio si no existe
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
     # Procesar el archivo (por ejemplo, guardarlo en el sistema de archivos)
-    with open("received_file.zip", "wb") as f:
+    with open( f"{path}/{filename}", "wb") as f:
         f.write(contents)
     
-    # Proporcionar una respuesta para indicar que el archivo zip ha sido creado
-    return {"msg": "New file.zip created"}
+    # Proporcionar una respuesta para indicar que el archivo ha sido creado
+    return {"msg": f"New {filename} created in {path}"}
 
 # Define a WebSocket endpoint for the transfer operation
 @app.websocket("/transfer")
@@ -493,3 +505,22 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
                     await websocket.send_text("Invalid data format")
         except WebSocketDisconnect as e:
             print(f"WebSocket disconnected: {e}")
+            
+
+# Define a POST endpoint for site installation
+@app.post("/site-install")
+async def site_install(data: Dict[str, str] = None):
+    
+    # Extract necessary data from the request
+    domain = data.get("domain", "undefined")
+    vol_name = data.get("vol_name", "undefined")
+    path_unzip = f"recive/{domain}/"
+    
+    # Unzip the files   
+    def unzip_file(zip_path, extract_path):
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_path)
+
+    unzip_file(f"{path_unzip}{domain}.zip", f"recive/{domain}/{vol_name}")
+    
+    return { "msg": f"Site {domain} installed" }
