@@ -70,20 +70,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class TokenData(BaseModel):
     username: str = None
 
-def user_validate(user_db, data):
-    data = json.loads(data)
-    token = data['token']
-    
+import requests
+
+def user_validate(username, password):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:                
-        return { "status": False , "data": data}
-    
-    username: str = payload.get("sub")
-    
-    user = user_db.get(username, False)
-    
-    return { "status": user , "data": data}
+        response = requests.post("http://reevolutivahost.local/wp-json/reev-host/v1/login", data={"username": username, "password": password})
+        response_data = response.json()
+    except requests.exceptions.RequestException as e:
+        return {"status": False, "error": str(e)}
+
+    if 'error' in response_data:
+        return {"status": False, "data": response_data}
+
+    return {"status": True, "data": response_data}
+
+re = user_validate( "admin", "admin" )
+print( re )
 
 
 @app.websocket("/app-clone")

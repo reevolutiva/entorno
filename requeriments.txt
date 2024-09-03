@@ -6,3 +6,4 @@ uvicorn[standard]
 fastapi
 docker
 psutil
+requests
