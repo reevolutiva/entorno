@@ -45,13 +45,14 @@ def user_validate(username, password):
     try:
         response = requests.post("https://gscdesigns.net/wp-json/reev-host/v1/login/", data={"username": username, "password": password})
         response_data = response.json()
+        
+        return response_data     
+
+    
     except requests.exceptions.RequestException as e:
         return { "error": str(e), 'ok': False }
 
-    if 'error' in response_data:
-        return { "error": response_data, 'ok': False } 
-
-    return { "data": response_data, 'error': False , 'ok': True }
+    
 
 
 
@@ -61,9 +62,13 @@ async def app_clone(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             if True:
-                data_raw = await websocket.receive_text()                  
+                
+                data_raw = await websocket.receive_json()   
+                
+                username = data_raw.get("username", "undefined")
+                password = data_raw.get("password", "undefined")               
 
-                user = user_validate( fake_users_db, data_raw  )                
+                user = user_validate( username, password  )                
                 data = user['data']
                 
                 origin_domain = data.get("origin_domain", "undefined")  #Specify the domain
@@ -105,16 +110,16 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             if True:
-                data_raw = await websocket.receive_text()      
+                data_raw = await websocket.receive_json()      
                 username = data_raw.get("username", "undefined")
                 password = data_raw.get("password", "undefined")
                       
                 user = user_validate( username, password  )      
                 
-                user.ok == False:
+                if user['ok'] == False:
                     return { "error": user.error }
                 
-                user.ok == True:        
+                if user['ok'] == True:        
                                 
                     app = data.get("app", "undefined") #Specify the app name
                     domain = data.get("domain", "undefined") #Specify the domain
@@ -153,11 +158,9 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
                  
                 user = user_validate( username, password  )      
                 
-                if user.ok == False:
+                if user['ok'] == False:
                     return { "error": user.error }
-                if user.ok == True:         
-                                
-                
+                if user['ok'] == True:       
                 
                     command = f"./mount.sh {domain} {src_vol}"
                     #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
@@ -176,17 +179,17 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
     await websocket.accept()
     try:
         while True:
-            data_raw = await websocket.receive_text()
+            data_raw = await websocket.receive_json()
             username = data_raw.get("username", "undefined")
             password = data_raw.get("password", "undefined")
             
            
             user = user_validate( username, password  )    
             
-            if user.ok == False:
+            if user['ok'] == False:
                 return { "error": user.error }
             
-            if user.ok == True:            
+            if user['ok'] == True:            
                 domain = data_raw.get("domain", "undefined") #Specify the source path
                 src = data_raw.get("src", "undefined") #Specify the source path
                 src_vol = data_raw.get("src_vol", "undefined")
@@ -194,7 +197,7 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
                 command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
                 
                 await websocket.send_json({ "msg": f"Desmontando {domain}" })
-                subprocess.run( command , shell=True)
+                #subprocess.run( command , shell=True)
                 await websocket.send_json({ "msg": f"{domain} desmontado" })
     except WebSocketDisconnect:
         pass
@@ -205,7 +208,7 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
     await websocket.accept()
     try:
         while True:
-            data_raw = await websocket.receive_text()
+            data_raw = await websocket.receive_json()
             
             username = data_raw.get("username", "undefined")
             password = data_raw.get("password", "undefined")
@@ -215,16 +218,16 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
             
             user = user_validate( username, password  )     
             
-            if user.ok == False:
+            if user['ok'] == False:
                 return { "error": user.error }
             
-            if user.ok == True:           
+            if user['ok'] == True:           
                 
                 command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete true"
                 
                 await websocket.send_json({ "msg": f"Desmontando {domain}" })
                 await websocket.send_json({ "msg": f"Eliminando {domain}" })
-                subprocess.run( command , shell=True)
+                #subprocess.run( command , shell=True)
                 await websocket.send_json({ "msg": f"Desmontado y elmiminado {domain}" })
                 
     except WebSocketDisconnect:
@@ -257,10 +260,10 @@ async def site_list( data : Dict[str, str] = None):
         
         user = user_validate( username, password  )
         
-        if user.ok == False:
+        if user['ok'] == False:
             return { "error": user.error }
         
-        if user.ok == True:
+        if user['ok'] == True:
             return {"sites": list_directories("/home/hosting/") }
         
     except :
@@ -285,10 +288,10 @@ async def site_list( data : Dict[str, str] = None):
         
         user = user_validate( username, password  )
         
-        if user.ok == False:
+        if user['ok'] == False:
             return { "error": user.error }
         
-        if user.ok == True:    
+        if user['ok'] == True:    
             return {"site": site, "env_list": read_env_file( site_path ) }
     
     except :
@@ -314,10 +317,10 @@ async def site_list(token: str = Depends(oauth2_scheme), data : Dict = None):
         
         user = user_validate( username, password  )
         
-        if user.ok == False:
+        if user['ok'] == False:
             return { "error": user.error }
         
-        if user.ok == True:        
+        if user['ok'] == True:        
 
             return data
         
@@ -348,48 +351,50 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
     # Define a GET endpoint for the site status operation
 @app.get("/site-status")
-async def site_status( data : Dict[str, str] = None):
-    
-        try:
-            username = data.get("username", "undefined")
-            password = data.get("password", "undefined")
-            
-            user = user_validate( username, password  )
-            
-            if user.ok == False:
-                return { "error": user.error }
-            
-            if user.ok == True:
-                
-                client = docker.from_env()
-                containers = client.containers.list()
+async def site_status(  username: str = None, password: str = None ):         
         
-                active_containers = []
-                for container in containers:
+    user = user_validate( username, password  )
+            
+    if user['ok'] == False:
+        return { "error": user }
+            
+    if user['ok'] == True:
+            
+        try: 
+                
+            client = docker.from_env()
+            containers = client.containers.list()
+                
+            active_containers = []
+                
+            for container in containers:
                     
-                    config_file = container.labels["com.docker.compose.project.config_files"]
-                    service = container.labels["com.docker.compose.service"]
+                config_file = container.labels["com.docker.compose.project.config_files"]
+                service = container.labels["com.docker.compose.service"]
+         
                     
-                    #print( container.labels )
-                    
-                    active_containers.append({ 
-                        "name": container.name, 
-                        "status": container.status, 
-                        "id": container.id,
-                        "docker-compose" : config_file,
-                        "service": service,
-                    })
+                active_containers.append({ 
+                    "name": container.name, 
+                    "status": container.status, 
+                    "id": container.id,
+                    "docker-compose" : config_file,
+                    "service": service,
+                })
                         
-                return {"active_containers": active_containers }
+            return {"active_containers": active_containers }
+            
+        except:
+
+            raise HTTPException(
+                status_code=401,
+                detail="A ocurrido un error al intentar conectarse a Docker",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+               
                 
            
             
-        except :
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        
 
 
 @app.get("/server-system")
@@ -441,7 +446,7 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
         try:
             while True:
                 if True:
-                    data_raw = await websocket.receive_text()
+                    data_raw = await websocket.receive_json()
                     user = user_validate(fake_users_db, data_raw)
                     data = user['data']
                     
