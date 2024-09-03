@@ -17,39 +17,7 @@ import psutil
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import zipfile
-
-# Configuration for JWT
-SECRET_KEY = "hFa8u29!)kT2r387l?"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-# Password context for hashing and verification
-pwd_context = CryptContext(schemes=["bcrypt"])
-
-# Fake users database
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2a$12$nYxwJr3Ho3P5Rox87cZ3zeBAY4PQdXSdIzFSAV3MOHvnOg.H3Nw0a", # jeremias123
-        "disabled": False,
-    },
-    "alice": {
-        "username": "alice",
-        "full_name": "Alice Wonderson",
-        "email": "alice@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": True,
-    },
-    "newuser": {
-        "username": "newuser",
-        "full_name": "New User",
-        "email": "newuser@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    },
-}
+import shutil
 
 # Create FastAPI app instance
 app = FastAPI()
@@ -70,22 +38,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class TokenData(BaseModel):
     username: str = None
 
-import requests
 
-def user_validate(username, password):
+
+def user_validate(username, password):   
+     
     try:
-        response = requests.post("http://reevolutivahost.local/wp-json/reev-host/v1/login", data={"username": username, "password": password})
+        response = requests.post("https://gscdesigns.net/wp-json/reev-host/v1/login/", data={"username": username, "password": password})
         response_data = response.json()
     except requests.exceptions.RequestException as e:
-        return {"status": False, "error": str(e)}
+        return { "error": str(e), 'ok': False }
 
     if 'error' in response_data:
-        return {"status": False, "data": response_data}
+        return { "error": response_data, 'ok': False } 
 
-    return {"status": True, "data": response_data}
+    return { "data": response_data, 'error': False , 'ok': True }
 
-re = user_validate( "admin", "admin" )
-print( re )
 
 
 @app.websocket("/app-clone")
@@ -94,7 +61,8 @@ async def app_clone(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             if True:
-                data_raw = await websocket.receive_text()                
+                data_raw = await websocket.receive_text()                  
+
                 user = user_validate( fake_users_db, data_raw  )                
                 data = user['data']
                 
@@ -137,25 +105,32 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             if True:
-                data_raw = await websocket.receive_text()                
-                user = user_validate( fake_users_db, data_raw  )                
-                data = user['data']
-                                
-                app = data.get("app", "undefined") #Specify the app name
-                domain = data.get("domain", "undefined") #Specify the domain
-                email = data.get("email", "undefined") #Specify the email
-                db_password = data.get("db_password", "undefined") #Specify the database password
-                db_user = data.get("db_user", "undefined") #Specify the database user
-                wp_user = data.get("wp_user", "undefined") #Specify the WordPress user
-                wp_password = data.get("wp_password", "undefined") #Specify the WordPress password
-                new_db_name = data.get("new_db_name", "undefined") #Specify the new database name
-                is_bedrock = data.get("is_bedrock", "false") #Specify if it is a Bedrock app (true/false)
+                data_raw = await websocket.receive_text()      
+                username = data_raw.get("username", "undefined")
+                password = data_raw.get("password", "undefined")
+                      
+                user = user_validate( username, password  )      
                 
-                command = f"./wp-create.sh --domain {domain} --app {app} --email {email} --db-password {db_password} --db-user {db_user} --wp-user {wp_user} --wp-password {wp_password} --db-name {new_db_name} --is-bedrock {is_bedrock}"
-                #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
-                await websocket.send_json({ "msg": f"Creando {domain}" })
-                subprocess.run( command , shell=True)
-                await websocket.send_json({ "msg": f"{domain} ha sido creado" })
+                user.ok == False:
+                    return { "error": user.error }
+                
+                user.ok == True:        
+                                
+                    app = data.get("app", "undefined") #Specify the app name
+                    domain = data.get("domain", "undefined") #Specify the domain
+                    email = data.get("email", "undefined") #Specify the email
+                    db_password = data.get("db_password", "undefined") #Specify the database password
+                    db_user = data.get("db_user", "undefined") #Specify the database user
+                    wp_user = data.get("wp_user", "undefined") #Specify the WordPress user
+                    wp_password = data.get("wp_password", "undefined") #Specify the WordPress password
+                    new_db_name = data.get("new_db_name", "undefined") #Specify the new database name
+                    is_bedrock = data.get("is_bedrock", "false") #Specify if it is a Bedrock app (true/false)
+                    
+                    command = f"./wp-create.sh --domain {domain} --app {app} --email {email} --db-password {db_password} --db-user {db_user} --wp-user {wp_user} --wp-password {wp_password} --db-name {new_db_name} --is-bedrock {is_bedrock}"
+                    #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
+                    await websocket.send_json({ "msg": f"Creando {domain}" })
+                    subprocess.run( command , shell=True)
+                    await websocket.send_json({ "msg": f"{domain} ha sido creado" })
             else:
                 await websocket.send_text("Invalid data format")
     except WebSocketDisconnect as e:
@@ -169,19 +144,27 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             if True:
-                data_raw = await websocket.receive_text()                
-                user = user_validate( fake_users_db, data_raw  )                
-                data = user['data']
-                                
-                domain = data.get("domain", "undefined") #Specify the source path
-                src_vol = data.get("src_vol", "undefined")
                 
-                command = f"./mount.sh {domain} {src_vol}"
-                #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
-     
-                await websocket.send_json({ "msg": f"Montando {domain}" })
-                subprocess.run( command , shell=True)
-                await websocket.send_json({ "msg": f"{domain} Montado" })
+                data_raw = await websocket.receive_json()
+                username = data_raw.get("username", "undefined")
+                password = data_raw.get("password", "undefined")
+                domain = data_raw.get("domain", "undefined") #Specify the source path
+                src_vol = data_raw.get("src_vol", "undefined")              
+                 
+                user = user_validate( username, password  )      
+                
+                if user.ok == False:
+                    return { "error": user.error }
+                if user.ok == True:         
+                                
+                
+                
+                    command = f"./mount.sh {domain} {src_vol}"
+                    #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
+        
+                    await websocket.send_json({ "msg": f"Montando {domain}" })
+                    #subprocess.run( command , shell=True)
+                    await websocket.send_json({ "msg": f"{domain} Montado" })
             else:
                 await websocket.send_text("Invalid data format")
     except WebSocketDisconnect as e:
@@ -194,18 +177,25 @@ async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
     try:
         while True:
             data_raw = await websocket.receive_text()
-            user = user_validate( fake_users_db, data_raw  )                
-            data = user['data']
+            username = data_raw.get("username", "undefined")
+            password = data_raw.get("password", "undefined")
             
-            domain = data.get("domain", "undefined") #Specify the source path
-            src = data.get("src", "undefined") #Specify the source path
-            src_vol = data.get("src_vol", "undefined")
+           
+            user = user_validate( username, password  )    
             
-            command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
+            if user.ok == False:
+                return { "error": user.error }
             
-            await websocket.send_json({ "msg": f"Desmontando {domain}" })
-            subprocess.run( command , shell=True)
-            await websocket.send_json({ "msg": f"{domain} desmontado" })
+            if user.ok == True:            
+                domain = data_raw.get("domain", "undefined") #Specify the source path
+                src = data_raw.get("src", "undefined") #Specify the source path
+                src_vol = data_raw.get("src_vol", "undefined")
+                
+                command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
+                
+                await websocket.send_json({ "msg": f"Desmontando {domain}" })
+                subprocess.run( command , shell=True)
+                await websocket.send_json({ "msg": f"{domain} desmontado" })
     except WebSocketDisconnect:
         pass
 
@@ -216,19 +206,27 @@ async def delete(websocket: WebSocket, data: Dict[str, str] = None ):
     try:
         while True:
             data_raw = await websocket.receive_text()
-            user = user_validate( fake_users_db, data_raw  )                
-            data = user['data']
             
-            domain = data.get("domain", "undefined") #Specify the source path
-            src = data.get("src", "undefined") #Specify the source path
-            src_vol = data.get("src_vol", "undefined")
+            username = data_raw.get("username", "undefined")
+            password = data_raw.get("password", "undefined")
+            domain = data_raw.get("domain", "undefined") #Specify the source path
+            src = data_raw.get("src", "undefined") #Specify the source path
+            src_vol = data_raw.get("src_vol", "undefined")
             
-            command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete true"
+            user = user_validate( username, password  )     
             
-            await websocket.send_json({ "msg": f"Desmontando {domain}" })
-            await websocket.send_json({ "msg": f"Eliminando {domain}" })
-            subprocess.run( command , shell=True)
-            await websocket.send_json({ "msg": f"Desmontado y elmiminado {domain}" })
+            if user.ok == False:
+                return { "error": user.error }
+            
+            if user.ok == True:           
+                
+                command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete true"
+                
+                await websocket.send_json({ "msg": f"Desmontando {domain}" })
+                await websocket.send_json({ "msg": f"Eliminando {domain}" })
+                subprocess.run( command , shell=True)
+                await websocket.send_json({ "msg": f"Desmontado y elmiminado {domain}" })
+                
     except WebSocketDisconnect:
         pass
 
@@ -250,29 +248,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 # Define a GET endpoint for the hello operation
 @app.get("/site-list")
-async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] = None):
-    
-    print( "data" )
-    print( data )
+async def site_list( data : Dict[str, str] = None):
     
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        user = fake_users_db.get(username)
-        if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return {"sites": list_directories("/home/hosting/") }
-    except JWTError:
+        
+        username = data.get("username", "undefined")
+        password = data.get("password", "undefined")
+        
+        user = user_validate( username, password  )
+        
+        if user.ok == False:
+            return { "error": user.error }
+        
+        if user.ok == True:
+            return {"sites": list_directories("/home/hosting/") }
+        
+    except :
         raise HTTPException(
             status_code=401,
             detail="Invalid token",
@@ -281,31 +272,26 @@ async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] =
     
 # Define a GET endpoint for the hello operation
 @app.post("/site-config")
-async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] = None):
+async def site_list( data : Dict[str, str] = None):
     
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        user = fake_users_db.get(username)
-        if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        
+           
+        username = data.get("username", "undefined")
+        password = data.get("password", "undefined")
             
         site = data.get("site", "undefined")
         site_path = data.get("site_path", "undefined")
+        
+        user = user_validate( username, password  )
+        
+        if user.ok == False:
+            return { "error": user.error }
+        
+        if user.ok == True:    
+            return {"site": site, "env_list": read_env_file( site_path ) }
     
-        return {"site": site, "env_list": read_env_file( site_path ) }
-    
-    except JWTError:
+    except :
         raise HTTPException(
             status_code=401,
             detail="Invalid token",
@@ -318,38 +304,31 @@ async def site_list(token: str = Depends(oauth2_scheme), data : Dict[str, str] =
 async def site_list(token: str = Depends(oauth2_scheme), data : Dict = None):
     
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        user = fake_users_db.get(username)
-        if user is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+       
+        username = data.get("username", "undefined")
+        password = data.get("password", "undefined")
             
         site = data.get("site", "undefined")
         site_path = data.get("site_path", "undefined")
         vars_to_chage = data.get("vars_to_chage", "undefined")
         
-        print("vars_to_chage")
-        print(data)
-        return data
-    
-        for var in vars_to_chage:        
-            key = var['key']
-            value = var['value']
-            #buscar_archivo_env( site_path, var["key"] , var["value"] )    
+        user = user_validate( username, password  )
+        
+        if user.ok == False:
+            return { "error": user.error }
+        
+        if user.ok == True:        
+
+            return data
+        
+            for var in vars_to_chage:        
+                key = var['key']
+                value = var['value']
+                #buscar_archivo_env( site_path, var["key"] , var["value"] )    
      
         #return {"site": site, "env_list": vars_to_chage }
     
-    except JWTError:
+    except :
         raise HTTPException(
             status_code=401,
             detail="Invalid token",
@@ -369,49 +348,43 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
     # Define a GET endpoint for the site status operation
 @app.get("/site-status")
-async def site_status( token: str = Depends(oauth2_scheme) ):
+async def site_status( data : Dict[str, str] = None):
     
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            username: str = payload.get("sub")
-            if username is None:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Invalid token",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-            user = fake_users_db.get(username)
-            if user is None:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Invalid token",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
+            username = data.get("username", "undefined")
+            password = data.get("password", "undefined")
+            
+            user = user_validate( username, password  )
+            
+            if user.ok == False:
+                return { "error": user.error }
+            
+            if user.ok == True:
                 
-            client = docker.from_env()
-            containers = client.containers.list()
-    
-            active_containers = []
-            for container in containers:
-                
-                config_file = container.labels["com.docker.compose.project.config_files"]
-                service = container.labels["com.docker.compose.service"]
-                
-                #print( container.labels )
-                
-                active_containers.append({ 
-                    "name": container.name, 
-                    "status": container.status, 
-                    "id": container.id,
-                    "docker-compose" : config_file,
-                    "service": service,
-                })
+                client = docker.from_env()
+                containers = client.containers.list()
+        
+                active_containers = []
+                for container in containers:
                     
-            return {"active_containers": active_containers }
+                    config_file = container.labels["com.docker.compose.project.config_files"]
+                    service = container.labels["com.docker.compose.service"]
+                    
+                    #print( container.labels )
+                    
+                    active_containers.append({ 
+                        "name": container.name, 
+                        "status": container.status, 
+                        "id": container.id,
+                        "docker-compose" : config_file,
+                        "service": service,
+                    })
+                        
+                return {"active_containers": active_containers }
                 
            
             
-        except JWTError:
+        except :
             raise HTTPException(
                 status_code=401,
                 detail="Invalid token",
@@ -421,6 +394,7 @@ async def site_status( token: str = Depends(oauth2_scheme) ):
 
 @app.get("/server-system")
 async def server_system():
+    
     
     # Uso del CPU
     cpu_usage = psutil.cpu_percent()
@@ -438,6 +412,8 @@ async def server_system():
 # Define a POST endpoint for receiving transfer data
 @app.post("/transfer-receive")
 async def transfer_receive(site: str, filename: str, file: UploadFile = File(...)):
+    
+    #TODO: Add user validation
     # Leer el contenido del archivo
     contents = await file.read()
     
@@ -460,6 +436,7 @@ async def transfer_receive(site: str, filename: str, file: UploadFile = File(...
 # Define a WebSocket endpoint for the transfer operation
 @app.websocket("/transfer")
 async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
+    #TODO: Add user validation
         await websocket.accept()
         try:
             while True:
@@ -479,7 +456,6 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
                     
                     env_list = read_env_file( f"{docker_route}/.env" )                   
 
-                    # TODO: Implement the transfer logic here
                     command = f"./transfer.sh {domain}" 
                     
                     subprocess.run( command , shell=True)
@@ -511,6 +487,8 @@ async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
 @app.post("/site-install")
 async def site_install(data: Dict[str, str] = None):
     
+    #TODO: Add user validation
+    
     # Extract necessary data from the request
     domain = data.get("domain", "undefined")
     vol_name = data.get("vol_name", "undefined")
@@ -520,7 +498,19 @@ async def site_install(data: Dict[str, str] = None):
     def unzip_file(zip_path, extract_path):
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_path)
-
+            
     unzip_file(f"{path_unzip}{domain}.zip", f"recive/{domain}/{vol_name}")
+    
+    source_dir = f"recive/{domain}/{vol_name}"
+    destination_dir = f"/home/hosting/{domain}/{vol_name}"
+    
+    # valida que destination_dir exita
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
+        
+    # Valida que destination_dir este vacio
+    if os.path.exists(destination_dir) and len( os.listdir(destination_dir) ) == 0:
+        shutil.move(source_dir, destination_dir)
+        
     
     return { "msg": f"Site {domain} installed" }
