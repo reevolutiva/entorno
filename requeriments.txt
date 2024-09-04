@@ -7,3 +7,6 @@ fastapi
 docker
 psutil
 requests
+google-auth==2.3.3
+google-api-python-client==2.31.0
+oauth2client==4.1.3
