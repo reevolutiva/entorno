@@ -439,53 +439,41 @@ async def transfer_receive(site: str, filename: str, file: UploadFile = File(...
     return {"msg": f"New {filename} created in {path}"}
 
 # Define a WebSocket endpoint for the transfer operation
-@app.websocket("/transfer")
-async def transfer(websocket: WebSocket, data: Dict[str, str] = None):
+@app.post("/transfer")
+async def transfer(data: Dict[str, str] = None):
     #TODO: Add user validation
-        await websocket.accept()
-        try:
-            while True:
-                if True:
-                    data_raw = await websocket.receive_json()
-                    user = user_validate(fake_users_db, data_raw)
-                    data = user['data']
-                    
-                    #print( data )
+    domain = data.get("domain", "undefined")  # Specify the domain
+    destiny_ip = data.get("destiny_ip" , "undefined")  # Specify the destiny IP
+    destiny_port = data.get("destiny_port", "undefined")  # Specify the destiny port,
+    docker_vols = data.get("docker_vols", "undefined")  # Specify the docker volumes
+    docker_route = data.get("docker_route", "undefined")  # Specify the docker route
+    
+    env_list = read_env_file(f"{docker_route}/.env")
 
-                    # Extract necessary data from the request
-                    domain = data.get("domain", "undefined")  # Specify the domain
-                    destiny_ip = data.get("destiny_ip" , "undefined")  # Specify the destiny IP
-                    destiny_port = data.get("destiny_port", "undefined")  # Specify the destiny port,
-                    docker_vols = data.get("docker_vols", "undefined")  # Specify the docker volumes
-                    docker_route = data.get("docker_route", "undefined")  # Specify the docker route
-                    
-                    env_list = read_env_file( f"{docker_route}/.env" )                   
+    print(data)
 
-                    command = f"./transfer.sh {domain}" 
-                    
-                    subprocess.run( command , shell=True)
-                    
-                    requests.post( 
-                        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={domain}-conf", 
-                        files={"file": open(f"/home/hosting/trasnfer/{domain}/{domain}-conf.zip", "rb")} 
-                    )
-                    
-                    requests.post( 
-                        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={domain}-db", 
-                        files={"file": open(f"/home/hosting/trasnfer/{domain}/{domain}-db.zip", "rb")} 
-                    )
-                    
-                    requests.post( 
-                        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={domain}-wp", 
-                        files={"file": open(f"/home/hosting/trasnfer/{domain}/{domain}-wp.zip", "rb")} 
-                    )
-
-                    await websocket.send_json({"msg": f"Transfer completed from {domain} to {destiny_ip}"})
-
-                else:
-                    await websocket.send_text("Invalid data format")
-        except WebSocketDisconnect as e:
-            print(f"WebSocket disconnected: {e}")
+    # command = f"./transfer.sh {domain}" 
+    # subprocess.run(command, shell=True)
+    
+    conf_filename = f"{domain}-conf.zip"
+    requests.post(
+        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={conf_filename}&site={domain}",
+        files={"file": open(f"/home/hosting/trasnfer/{domain}/{conf_filename}", "rb")}
+    )
+    
+    db_filename = f"{domain}-db.zip"
+    requests.post(
+        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={db_filename}&site={domain}",
+        files={"file": open(f"/home/hosting/trasnfer/{domain}/{db_filename}", "rb")}
+    )
+    
+    wp_filename = f"{domain}-wp.zip"
+    requests.post(
+        f"http://{destiny_ip}:{destiny_port}/transfer-receive?filename={wp_filename}&site={domain}",
+        files={"file": open(f"/home/hosting/trasnfer/{domain}/{wp_filename}", "rb")}
+    )
+    
+    return {"msg": f"Transfer completed from {domain} to {destiny_ip}"}
             
 
 # Define a POST endpoint for site installation
@@ -519,3 +507,28 @@ async def site_install(data: Dict[str, str] = None):
         
     
     return { "msg": f"Site {domain} installed" }
+
+    # Define a GET endpoint for the transfer status operation
+@app.get("/transfer-status/{domain}")
+async def transfer_status(domain: str, username: str = None, password: str = None):
+
+    user = user_validate( username, password  )
+
+    if user['ok'] == False:
+        return { "error": user['message'] }
+    
+    # Use shutil to list the contents of the directory
+    directory = f"/home/entorno/recive/{domain}"
+    contents = os.listdir(directory)
+    file_info = []
+    for file in contents:
+        file_path = os.path.join(directory, file)
+        size = os.path.getsize(file_path)
+        modified_time = os.path.getmtime(file_path)
+        formatted_time = datetime.fromtimestamp(modified_time).strftime('%H:%M %d-%m-%Y')
+        size_gb = size / (1024 * 1024 * 1024)
+        size_mb = size / (1024 * 1024)
+        size_kb = size / 1024
+        file_info.append({"file": file, "size":  [f"{size_gb:.2f} GB" , f"{size_mb:.2f} MB", f"{size_kb:.2f} KB" ], "modified_time": formatted_time})
+
+    return {"data": file_info}
