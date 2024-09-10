@@ -21,6 +21,15 @@ import shutil
 
 abs_path = os.path.abspath(os.path.dirname(__file__))
 
+def get_directory_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            # Sumar el tamaño del archivo
+            total_size += os.path.getsize(fp)
+    return total_size
+
 # Create FastAPI app instance
 app = FastAPI()
 
@@ -432,6 +441,7 @@ async def transfer_receive(site: str, filename: str, file: UploadFile = File(...
     # Crear el directorio si no existe
     if not os.path.exists(path):
         os.makedirs(path)
+
     
     # Procesar el archivo (por ejemplo, guardarlo en el sistema de archivos)
     with open( f"{path}/{filename}", "wb") as f:
@@ -532,19 +542,49 @@ async def transfer_status(domain: str, username: str = None, password: str = Non
 
     if user['ok'] == False:
         return { "error": True }
+
     
-    # Use shutil to list the contents of the directory
-    directory = f"/home/entorno/recive/{domain}"
-    contents = os.listdir(directory)
     file_info = []
-    for file in contents:
-        file_path = os.path.join(directory, file)
-        size = os.path.getsize(file_path)
+    for file in os.listdir(f"/home/hosting/{domain}"):
+
+        file_path = os.path.join(f"/home/hosting/{domain}", file)
+        size = get_directory_size(file_path)
         modified_time = os.path.getmtime(file_path)
         formatted_time = datetime.fromtimestamp(modified_time).strftime('%H:%M %d-%m-%Y')
         size_gb = size / (1024 * 1024 * 1024)
         size_mb = size / (1024 * 1024)
         size_kb = size / 1024
-        file_info.append({"file": file, "size":  [f"{size_gb:.2f} GB" , f"{size_mb:.2f} MB", f"{size_kb:.2f} KB" ], "modified_time": formatted_time})
+
+        file_info.append({"file": file, "src": file_path,  "size": [f"{size_gb:.2f} GB", f"{size_mb:.2f} MB", f"{size_kb:.2f} KB"], "modified_time": formatted_time})
+
+    # Valida que exista f"/home/hosting/reevolutiva-net/{domain}
+    if not os.path.exists(f"/home/hosting/reevolutiva-net/{domain}"):
+        os.makedirs(f"/home/hosting/reevolutiva-net/{domain}")
+
+    file_path = os.path.join(f"/home/hosting/reevolutiva-net/{domain}")
+    size = get_directory_size(file_path)
+    modified_time = os.path.getmtime(file_path)
+    formatted_time = datetime.fromtimestamp(modified_time).strftime('%H:%M %d-%m-%Y')
+    size_gb = size / (1024 * 1024 * 1024)
+    size_mb = size / (1024 * 1024)
+    size_kb = size / 1024
+    
+    file_info.append({"file": "conf" , "src": file_path,  "size": [f"{size_gb:.2f} GB", f"{size_mb:.2f} MB", f"{size_kb:.2f} KB"], "modified_time": formatted_time})
+
+
+    if ( len( file_info ) == 0 ):
+        # Use shutil to list the contents of the directory
+        directory = f"/home/entorno/recive/{domain}"
+        contents = os.listdir(directory)
+        file_info = []
+        for file in contents:
+            file_path = os.path.join(directory, file)
+            size = os.path.getsize(file_path)
+            modified_time = os.path.getmtime(file_path)
+            formatted_time = datetime.fromtimestamp(modified_time).strftime('%H:%M %d-%m-%Y')
+            size_gb = size / (1024 * 1024 * 1024)
+            size_mb = size / (1024 * 1024)
+            size_kb = size / 1024
+            file_info.append({"file": file, "size":  [f"{size_gb:.2f} GB" , f"{size_mb:.2f} MB", f"{size_kb:.2f} KB" ], "modified_time": formatted_time})
 
     return {"data": file_info}
