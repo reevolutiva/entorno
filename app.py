@@ -19,6 +19,8 @@ import requests
 import zipfile
 import shutil
 
+abs_path = os.path.abspath(os.path.dirname(__file__))
+
 # Create FastAPI app instance
 app = FastAPI()
 
@@ -476,46 +478,60 @@ async def transfer(data: Dict[str, str] = None):
     return {"msg": f"Transfer completed from {domain} to {destiny_ip}"}
             
 
+
+
 # Define a POST endpoint for site installation
 @app.post("/site-install")
-async def site_install(data: Dict[str, str] = None):
-    
-    #TODO: Add user validation
-    
+async def site_install( domain: str, vol_path: str, vol_type: str = False):
+
     # Extract necessary data from the request
-    domain = data.get("domain", "undefined")
-    vol_name = data.get("vol_name", "undefined")
-    path_unzip = f"recive/{domain}/"
-    
-    # Unzip the files   
+    path_unzip = f"{abs_path}/recive/{domain}/"
+
+    # Unzip the files
     def unzip_file(zip_path, extract_path):
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_path)
-            
-    unzip_file(f"{path_unzip}{domain}.zip", f"recive/{domain}/{vol_name}")
-    
-    source_dir = f"recive/{domain}/{vol_name}"
-    destination_dir = f"/home/hosting/{domain}/{vol_name}"
-    
-    # valida que destination_dir exita
+
+    unzip_file(f"{path_unzip}{vol_path}", f"recive/{domain}/")
+
+    source_dir = f"{abs_path}/recive/{domain}/{vol_path}"
+    destination_dir = f"/home/hosting/{domain}"
+
+    # Validate that destination_dir exists
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
-        
-    # Valida que destination_dir este vacio
-    if os.path.exists(destination_dir) and len( os.listdir(destination_dir) ) == 0:
-        shutil.move(source_dir, destination_dir)
-        
-    
-    return { "msg": f"Site {domain} installed" }
 
-    # Define a GET endpoint for the transfer status operation
+    if vol_type == "docker-compose":
+
+        # Valida que exista /home/hosting/reevolutiva-net/{domain}/
+        if not os.path.exists(f"/home/hosting/reevolutiva-net/{domain}/"):
+            os.makedirs(f"/home/hosting/reevolutiva-net/{domain}/")
+
+        # Docker compose
+        shutil.move( f"/home/entorno/recive/{domain}/home/hosting/reevolutiva-net/{domain}/.env", f'/home/hosting/reevolutiva-net/{domain}/.env' )
+        shutil.move( f"/home/entorno/recive/{domain}/home/hosting/reevolutiva-net/{domain}/docker-compose.yml", f'/home/hosting/reevolutiva-net/{domain}/docker-compose.yml' )
+
+    if vol_type == "wp":
+        # WordPress
+        shutil.move( f"/home/entorno/recive/{domain}/home/hosting/{domain}/wp", f"{destination_dir}/" )
+
+    if vol_type == "db":
+        # Database
+        shutil.move( f"/home/entorno/recive/{domain}/home/hosting/{domain}/db", f"{destination_dir}/" )
+
+    
+    # Elimina la carpeta en el directorio /home/entorno/recive/{domain}/home
+    shutil.rmtree(f"/home/entorno/recive/{domain}/home")
+
+    return {"msg": f"Site {domain} installed"}
+    
 @app.get("/transfer-status/{domain}")
 async def transfer_status(domain: str, username: str = None, password: str = None):
 
     user = user_validate( username, password  )
 
     if user['ok'] == False:
-        return { "error": user['message'] }
+        return { "error": True }
     
     # Use shutil to list the contents of the directory
     directory = f"/home/entorno/recive/{domain}"
