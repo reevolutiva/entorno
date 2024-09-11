@@ -154,64 +154,46 @@ async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
 
 
 # Define a WebSocket endpoint for the create mount
-@app.websocket("/mount")
-async def mount(websocket: WebSocket, data: Dict[str, str] = None ):
-    await websocket.accept()
-    try:
-        while True:
-            if True:
-                
-                data_raw = await websocket.receive_json()
-                username = data_raw.get("username", "undefined")
-                password = data_raw.get("password", "undefined")
-                domain = data_raw.get("domain", "undefined") #Specify the source path
-                src_vol = data_raw.get("src_vol", "undefined")              
-                 
-                user = user_validate( username, password  )      
-                
-                if user['ok'] == False:
-                    return { "error": user.error }
-                if user['ok'] == True:       
-                
-                    command = f"./mount.sh {domain} {src_vol}"
-                    #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
-        
-                    await websocket.send_json({ "msg": f"Montando {domain}" })
-                    #subprocess.run( command , shell=True)
-                    await websocket.send_json({ "msg": f"{domain} Montado" })
-            else:
-                await websocket.send_text("Invalid data format")
-    except WebSocketDisconnect as e:
-        print(f"WebSocket disconnected: {e}")
+@app.post("/mount")
+async def mount(data: Dict[str, str] = None):
+
+    username = data.get("username", "undefined")
+    password = data.get("password", "undefined")
+    domain = data.get("domain", "undefined") #Specify the source path
+    src_vol = data.get("src_vol", "undefined")
+    
+    user = user_validate(username, password)
+    
+    if user['ok'] == False:
+        return { "error": user.error }
+    
+    if user['ok'] == True:
+        command = f"./mount.sh {domain} {src_vol}"
+        #./wp-create.sh --domain lore.reevolutiva.com --app lorereev --email ti@reevolutiva.com --db-password NMlGQzwxF9GRFsOXD0xj --db-user 4DM1N --wp-user 4DM1N --wp-password NMlGQzwxF9GRFsOXD0xj --db-name lore_bd --is-bedrock false
+        subprocess.run( command , shell=True)
+
+        return { "msg": f"Montando {domain}" }
 
 # Define a WebSocket endpoint for the unmount operation
-@app.websocket("/unmount")
-async def unmount(websocket: WebSocket, data: Dict[str, str] = None):
-    await websocket.accept()
-    try:
-        while True:
-            data_raw = await websocket.receive_json()
-            username = data_raw.get("username", "undefined")
-            password = data_raw.get("password", "undefined")
-            
-           
-            user = user_validate( username, password  )    
-            
-            if user['ok'] == False:
-                return { "error": user.error }
-            
-            if user['ok'] == True:            
-                domain = data_raw.get("domain", "undefined") #Specify the source path
-                src = data_raw.get("src", "undefined") #Specify the source path
-                src_vol = data_raw.get("src_vol", "undefined")
-                
-                command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
-                
-                await websocket.send_json({ "msg": f"Desmontando {domain}" })
-                #subprocess.run( command , shell=True)
-                await websocket.send_json({ "msg": f"{domain} desmontado" })
-    except WebSocketDisconnect:
-        pass
+@app.post("/unmount")
+async def unmount(data: Dict[str, str] = None):
+
+    username = data.get("username", "undefined")
+    password = data.get("password", "undefined")
+    domain = data.get("domain", "undefined") #Specify the source path
+    src = data.get("src", "undefined") #Specify the source path
+    src_vol = data.get("src_vol", "undefined")
+    
+    user = user_validate(username, password)
+    
+    if user['ok'] == False:
+        return { "error": user.error }
+    
+    if user['ok'] == True:           
+        command = f"./diactivate-container.sh --src {src} --src-vol {src_vol} --delete false"
+        #print(command)
+        subprocess.run(command, shell=True)
+        return { "msg": f"{domain} desmontado" }
 
 # Define a WebSocket endpoint for the delete operation
 @app.websocket("/delete")
@@ -464,8 +446,8 @@ async def transfer(data: Dict[str, str] = None):
 
     print(data)
 
-    # command = f"./transfer.sh {domain}" 
-    # subprocess.run(command, shell=True)
+    command = f"./transfer.sh {domain}" 
+    subprocess.run(command, shell=True)
     
     conf_filename = f"{domain}-conf.zip"
     requests.post(
