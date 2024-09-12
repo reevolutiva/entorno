@@ -445,10 +445,6 @@ async def transfer(data: Dict[str, str] = None):
     env_list = read_env_file(f"{docker_route}/.env")
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b7dc9fc (activo sistema de comprecion de volumenes)
     command = f"./transfer.sh {domain}" 
     subprocess.run(command, shell=True)
     
