@@ -526,17 +526,23 @@ async def transfer_status(domain: str, username: str = None, password: str = Non
 
     
     file_info = []
-    for file in os.listdir(f"/home/hosting/{domain}"):
+    # Valida que exista /home/hosting/{domain}
+    if os.path.exists(f"/home/hosting/{domain}"):
+        
+        for file in os.listdir(f"/home/hosting/{domain}"):
 
-        file_path = os.path.join(f"/home/hosting/{domain}", file)
-        size = get_directory_size(file_path)
-        modified_time = os.path.getmtime(file_path)
-        formatted_time = datetime.fromtimestamp(modified_time).strftime('%H:%M %d-%m-%Y')
-        size_gb = size / (1024 * 1024 * 1024)
-        size_mb = size / (1024 * 1024)
-        size_kb = size / 1024
+            # valida si en la ruta en file esta este string wp-cli-login-server.php
+            if "wp-cli-login-server.php" in file:
 
-        file_info.append({"file": file, "src": file_path,  "size": [f"{size_gb:.2f} GB", f"{size_mb:.2f} MB", f"{size_kb:.2f} KB"], "modified_time": formatted_time})
+                file_path = os.path.join(f"/home/hosting/{domain}", file)
+                size = get_directory_size(file_path)
+                modified_time = os.path.getmtime(file_path)
+                formatted_time = datetime.fromtimestamp(modified_time).strftime('%H:%M %d-%m-%Y')
+                size_gb = size / (1024 * 1024 * 1024)
+                size_mb = size / (1024 * 1024)
+                size_kb = size / 1024
+
+                file_info.append({"file": file, "src": file_path,  "size": [f"{size_gb:.2f} GB", f"{size_mb:.2f} MB", f"{size_kb:.2f} KB"], "modified_time": formatted_time})
 
     # Valida que exista f"/home/hosting/reevolutiva-net/{domain}
     if not os.path.exists(f"/home/hosting/reevolutiva-net/{domain}"):
