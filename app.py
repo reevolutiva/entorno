@@ -26,9 +26,10 @@ def get_directory_size(directory):
     for dirpath, dirnames, filenames in os.walk(directory):
         for f in filenames:
             fp = os.path.join(dirpath, f)
-            # Sumar el tamaño del archivo
-            total_size += os.path.getsize(fp)
-    return total_size
+            if 'wp-cli-login-server.php' not in fp:
+                # Sumar el tamaño del archivo
+                total_size += os.path.getsize(fp)
+        return total_size
 
 # Create FastAPI app instance
 app = FastAPI()
