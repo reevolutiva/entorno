@@ -515,6 +515,9 @@ async def site_install( domain: str, vol_path: str, vol_type: str = False):
     # Elimina la carpeta en el directorio /home/entorno/recive/{domain}/home
     shutil.rmtree(f"/home/entorno/recive/{domain}/home")
 
+    # Otrogo permiosos a la carpeta /home/hosting/{domain}
+    os.system(f"chown -R 1000:1000 /home/hosting/{domain}")
+
     return {"msg": f"Site {domain} installed"}
     
 @app.get("/transfer-status/{domain}")
