@@ -22,8 +22,8 @@ def load_acme_json( ):
         return acme
 
 def write_acme_json(acme):
-    with open( acme_path , 'w') as f:
-        json.dump(acme, f)
+    with open(acme_path, 'w') as f:
+        json.dump(acme, f, indent=4)
 
 def delete_ssl_cert( domain ):
    
@@ -32,13 +32,17 @@ def delete_ssl_cert( domain ):
 
     certs_list = []
 
+    print("Buscando certificado SSL")
+
     for i in range(len(ssl_list)):
         if not ssl_list[i]["domain"]["main"] == domain:
             certs_list.append(ssl_list[i])
 
     acme['reevolutivaresolver']['Certificates'] = certs_list
+    print("Certificado SSL eliminado")
 
     write_acme_json(acme)
+    print("ACME.json actualizado")
 
 client = docker.from_env()
 
