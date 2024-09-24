@@ -80,4 +80,3 @@ def ssl_refresh( domain ):
     # Enciende contentendor trasferido
     run_docker_compose( domain, site_conf_path, "up" )
 
-ssl_refresh("coursefactory.lat")
