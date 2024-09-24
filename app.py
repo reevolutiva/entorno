@@ -579,3 +579,20 @@ async def transfer_status(domain: str, username: str = None, password: str = Non
             file_info.append({"file": file, "size":  [f"{size_gb:.2f} GB" , f"{size_mb:.2f} MB", f"{size_kb:.2f} KB" ], "modified_time": formatted_time})
 
     return {"data": file_info}
+
+
+@app.post("/ssh-refresh")
+async def ssh_refresh(data: Dict[str, str] = None):
+    username = data.get("username", "undefined")
+    password = data.get("password", "undefined")
+    domain = data.get("domain", "undefined")
+
+    user = user_validate(username, password)
+
+    if user['ok'] == False:
+        return {"error": user.error}
+
+    if user['ok'] == True:
+        command = f"./ssh-refresh.sh {domain}"
+        subprocess.run(command, shell=True)
+        return {"msg": f"SSH keys refreshed for {domain}"}
