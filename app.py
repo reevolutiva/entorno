@@ -594,6 +594,5 @@ async def ssh_refresh(data: Dict[str, str] = None):
         return {"error": user.error}
 
     if user['ok'] == True:
-        command = f"./ssh-refresh.sh {domain}"
-        subprocess.run(command, shell=True)
+        ssl_refresh(domain)
         return {"msg": f"SSH keys refreshed for {domain}"}
